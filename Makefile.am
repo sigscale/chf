@@ -2,7 +2,7 @@
 ##
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = ebin doc priv
+SUBDIRS = ebin doc priv test
 
 beam_DATA = ebin/chf.appup
 

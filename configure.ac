@@ -110,7 +110,7 @@ AC_ERLANG_CHECK_LIB([zj], [], [AC_MSG_ERROR([zj was not found!])])
 ##
 ## Output:  create output files
 ##
-AC_OUTPUT([Makefile ebin/Makefile doc/Makefile
+AC_OUTPUT([Makefile ebin/Makefile doc/Makefile test/Makefile
 		priv/Makefile priv/schema/Makefile
 		sys.config $PACKAGE_NAME.rel ebin/chf.appup
 		scripts/chf scripts/chf.service])
