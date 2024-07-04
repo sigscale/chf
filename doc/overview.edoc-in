@@ -1,0 +1,37 @@
+@copyright 2024 SigScale Global Inc.
+@version %VERSION%
+@title %DESCRIPTION%
+
+@reference <a target="_blank"
+		href="https://webapp.etsi.org/key/key.asp?GSMSpecPart1=32&amp;GSMSpecPart2=290">
+		3GPP TS 32.290</a>
+		5G System; Services, Operations and Procedures of Charging using Service Based Interface (SBI)
+@reference <a target="_blank"
+		href="https://webapp.etsi.org/key/key.asp?GSMSpecPart1=32&amp;GSMSpecPart2=291">
+		3GPP TS 32.291</a>
+		5G System; Charging Service; Stage 3
+
+@doc This application implements a 5GC Converged Charging Function (CHF).
+
+==Table of Contents==
+<ul>
+	<li><a href="#Intoduction">Introduction</a><br /></li>
+	<li><a href="#Configuration">Configuration</a><br /></li>
+</ul>
+
+==Introduction==
+This application provides a Converged Charging Function (CHF) within
+a decomposed Converged Charging System (CCS) within a 3GPP 5G Core
+network.
+
+==Configuration==
+System wide settings in the {@link //chf. chf} application may be
+configured using the following application environment variables
+(`~/releases/chf-<VERSION>/sys.config').
+
+===Example sys.config===
+```
+[{chf,
+     []}].
+'''
+

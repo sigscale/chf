@@ -1,0 +1,13 @@
+{release, {"SigScale CHF", "@PACKAGE@-@VERSION@"}, {erts, "@ERLANG_ERTS_VER@"},
+	[{kernel, "@ERLANG_LIB_VER_kernel@"},
+	{stdlib, "@ERLANG_LIB_VER_stdlib@"},
+	{sasl, "@ERLANG_LIB_VER_sasl@"},
+	{crypto, "@ERLANG_LIB_VER_crypto@"},
+	{asn1, "@ERLANG_LIB_VER_asn1@"},
+	{public_key, "@ERLANG_LIB_VER_public_key@"},
+	{ssl, "@ERLANG_LIB_VER_ssl@"},
+	{ranch, "@ERLANG_LIB_VER_ranch@"},
+	{cowlib, "@ERLANG_LIB_VER_cowlib@", load},
+	{cowboy, "@ERLANG_LIB_VER_cowboy@"},
+	{zj, "@ERLANG_LIB_VER_zj@", load},
+	{@PACKAGE@, "@VERSION@"}]}.

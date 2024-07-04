@@ -1,0 +1,35 @@
+#!/bin/false
+# Not a shell script!
+
+# Instructions for building in an adjacent directory
+# of the source directory (i.e. ../chf.build)
+
+## Configure new build directory
+mkdir -p shell/lib
+COWLIB=$(grep vsn ../cowlib/ebin/cowlib.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
+ln -st shell/lib ../../../cowlib cowlib-$COWLIB
+COWBOY=$(grep vsn ../cowboy/ebin/cowboy.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
+ln -st shell/lib ../../../cowboy cowboy-$COWBOY
+RANCH=$(grep vsn ../ranch/ebin/ranch.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
+ln -st shell/lib ../../../ranch ranch-$RANCH
+ZJ=$(grep vsn ../zj/ebin/zj.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
+ln -st shell/lib ../../../zj zj-$ZJ
+
+## Make documentation and test reports available
+mkdir -p ~/public_html/chf
+ln -st ~/public_html/chf ../../chf.build/doc
+ln -st ~/public_html/chf ../../chf.build/test/log
+mv ~/public_html/chf/log ~/public_html/chf/test
+
+## Configure project
+ERLANG_INSTALL_LIB_DIR=$PWD/shell/lib ERL_LIBS=$PWD/shell/lib ../chf/configure --with-systemdsystemunitdir=no
+
+## Install in shell/lib
+ERL_LIBS=$PWD/shell/lib make install
+
+## Validate, verify and test
+ERL_LIBS=$PWD/shell/lib make check
+
+## Scrub it clean
+ERL_LIBS=$PWD/shell/lib make distclean; rm -rf *.boot *.rel *.script *.tar.gz Makefile config.* chf.rel doc ebin src include priv test scripts stamp-h1 sys.config shell/lib/chf-*
+
