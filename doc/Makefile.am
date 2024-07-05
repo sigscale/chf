@@ -7,7 +7,8 @@ modhtml = chf.html \
 		chf_app.html \
 		chf_sup.html \
 		chf_server.html \
-		chf_nchf_handler.html
+		chf_nchf_handler.html \
+		chf_rest.html
 
 doc_DATA = overview.edoc $(modhtml) \
 		modules-frame.html \
