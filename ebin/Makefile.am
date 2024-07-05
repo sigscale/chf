@@ -8,7 +8,8 @@ EXTRA_DIST = chf.app
 beam_DATA = chf.beam \
 		chf_app.beam \
 		chf_sup.beam \
-		chf_server.beam
+		chf_server.beam \
+		chf_nchf_handler.beam
 
 %.beam:	$(top_srcdir)/src/%.erl
 	$(ERLC) $(ERLCFLAGS) $<

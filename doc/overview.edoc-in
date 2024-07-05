@@ -21,7 +21,7 @@
 
 ==Introduction==
 This application provides a Converged Charging Function (CHF) within
-a decomposed Converged Charging System (CCS) within a 3GPP 5G Core
+a decomposed Converged Charging System (CCS) in a 3GPP 5G Core
 network.
 
 ==Configuration==
@@ -29,9 +29,20 @@ System wide settings in the {@link //chf. chf} application may be
 configured using the following application environment variables
 (`~/releases/chf-<VERSION>/sys.config').
 
+===Nchf Interfaces===
+<dl>
+	<dt>`nchf'</dt>
+		<dd>Defines Nchf interfaces as a list `[NchfInterface]', where
+				`NchfInterface' is either `{Name, Transport, TransportOpts}'
+				or `{Name, Transport, TransportOpts, ProtocolOpts}',
+				see {@link //chf/chf:start/3. chf:start/3,4}.
+				(default: `[{default, tcp, [{port, 8080}]')</dd>
+</dl>
+
 ===Example sys.config===
 ```
 [{chf,
-     []}].
+    [{nchf,
+        [{default, tcp, [{port, 8080}]}]}]}].
 '''
 

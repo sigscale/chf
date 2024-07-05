@@ -5,7 +5,8 @@
 				[chf,
 				chf_app,
 				chf_sup,
-				chf_server]},
+				chf_server,
+				chf_nchf_handler]},
 		{registered,
 				[chf]},
 		{applications,
@@ -13,5 +14,13 @@
 				stdlib,
 				cowboy]},
 		{env,
-				[]},
+				[{nchf,
+						[{default, tcp, [{port, 8080}]}
+								% {Name, Transport, TransportOpts} | {Name, Transport, TransportOpts, ProtocolOpts}
+								% 		Name :: ranch:ref()
+								% 		Transport :: tcp | tls,
+								% 		TransportOpts :: ranch_tcp:opts() | ranch_ssl:opts(),
+								% 		ProtocolOpts :: cowboy:opts()
+						]}
+				]},
 		{mod, {chf_app,[]}}]}.

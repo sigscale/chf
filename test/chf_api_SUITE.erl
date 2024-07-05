@@ -26,7 +26,7 @@
 -export([init_per_testcase/2, end_per_testcase/2]).
 
 %% export test cases
--export([]).
+-export([start/0, start/1, stop/0, stop/1]).
 
 -include_lib("common_test/include/ct.hrl").
 
@@ -75,12 +75,32 @@ sequences() ->
 %% Returns a list of all test cases in this test suite.
 %%
 all() ->
-	[].
+	[start, stop].
 
 %%---------------------------------------------------------------------
 %%  Test cases
 %%---------------------------------------------------------------------
 
+start() ->
+	[{userdata, [{doc, "Start an Nchf interface endpoint"}]}].
+
+start(_Config) ->
+	Name = chf_test_lib:rand_dn(),
+	Port = rand:uniform(64511) + 1024,
+	TransportOpts = [{port, Port}],
+	{ok, Listener} = chf:start(Name, TransportOpts),
+	true = is_process_alive(Listener).
+
+stop() ->
+	[{userdata, [{doc, "Stop an Nchf interface endpoint"}]}].
+
+stop(_Config) ->
+	Name = chf_test_lib:rand_dn(),
+	Port = rand:uniform(64511) + 1024,
+	TransportOpts = [{port, Port}],
+	{ok, Listener} = chf:start(Name, TransportOpts),
+	ok = chf:stop(Name),
+	false = is_process_alive(Listener).
 
 %%---------------------------------------------------------------------
 %%  Internal functions

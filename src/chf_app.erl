@@ -29,7 +29,9 @@
 %% optional callbacks for application behaviour
 -export([prep_stop/1, start_phase/3]).
 
--record(state, {}).
+-include_lib("kernel/include/logger.hrl").
+
+-type state() :: [{NchName :: ranch:ref(), Listener :: pid()}].
 
 %%----------------------------------------------------------------------
 %%  The chf_app aplication callbacks
@@ -41,13 +43,26 @@
 		StartType :: start_type(),
 		StartArgs :: term(),
 		Result :: {ok, pid()} | {ok, pid(), State} | {error, Reason},
-		State :: #state{},
+		State :: state(),
 		Reason :: term().
 %% @doc Starts the application processes.
 start(normal = _StartType, _Args) ->
+	{ok, Nchfs} = application:get_env(nchf),
+	start1(Nchfs, []).
+%% @hidden
+start1([{Name, Transport, TransportOpts} | T] = _Nchfs, State) ->
+	start1([{Name, Transport, TransportOpts, #{}} | T], State);
+start1([{Name, Transport, TransportOpts, ProtocolOpts} | T] = _Nchfs, State) ->
+	case chf:start(Name, Transport, TransportOpts, ProtocolOpts) of
+		{ok, Listener} ->
+			start1(T, [{Name, Listener} | State]);
+		{error, Reason} ->
+			{error, Reason}
+	end;
+start1([], State) ->
 	case supervisor:start_link(chf_sup, []) of
 		{ok, Sup} ->
-			{ok, Sup};
+			{ok, Sup, State};
 		{error, Reason} ->
 			{error, Reason}
 	end.
@@ -66,19 +81,28 @@ start(normal = _StartType, _Args) ->
 start_phase(_Phase, _StartType, _PhaseArgs) ->
 	ok.
 
--spec prep_stop(State) -> #state{}
+-spec prep_stop(State) -> State
 	when
-		State :: #state{}.
+		State :: state().
 %% @doc Called when the application is about to be shut down,
 %%   before any processes are terminated.
 %% @see //kernel/application:stop/1
 %%
-prep_stop(State) ->
+prep_stop([{Name, Listener} | T] = _State) ->
+	case chf:stop(Name) of
+		ok ->
+			prep_stop(T);
+		{error, Reason} ->
+			?LOG_WARNING(#{module => ?MODULE, function => prep_stop,
+					nchf => Name, listener => Listener, reason => Reason}),
+			prep_stop(T)
+	end;
+prep_stop([] = State) ->
 	State.
 
 -spec stop(State) -> any()
 	when
-		State :: #state{}.
+		State :: state().
 %% @doc Called after the application has stopped to clean up.
 %%
 stop(_State) ->
