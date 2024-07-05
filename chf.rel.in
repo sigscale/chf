@@ -9,5 +9,6 @@
 	{ranch, "@ERLANG_LIB_VER_ranch@"},
 	{cowlib, "@ERLANG_LIB_VER_cowlib@", load},
 	{cowboy, "@ERLANG_LIB_VER_cowboy@"},
+	{gun, "@ERLANG_LIB_VER_gun@"},
 	{zj, "@ERLANG_LIB_VER_zj@", load},
 	{@PACKAGE@, "@VERSION@"}]}.

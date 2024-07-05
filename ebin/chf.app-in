@@ -12,7 +12,8 @@
 		{applications,
 				[kernel,
 				stdlib,
-				cowboy]},
+				cowboy,
+				gun]},
 		{env,
 				[{nchf,
 						[{default, tcp, [{port, 8080}]}

@@ -88,6 +88,7 @@ AC_ERLANG_CHECK_LIB([ssl], [], [AC_MSG_ERROR([ssl was not found!])])
 AC_ERLANG_CHECK_LIB([ranch], [], [AC_MSG_ERROR([ranch was not found!])])
 AC_ERLANG_CHECK_LIB([cowlib], [], [AC_MSG_ERROR([cowlib was not found!])])
 AC_ERLANG_CHECK_LIB([cowboy], [], [AC_MSG_ERROR([cowboy was not found!])])
+AC_ERLANG_CHECK_LIB([gun], [], [AC_MSG_ERROR([gun was not found!])])
 AC_ERLANG_CHECK_LIB([zj], [], [AC_MSG_ERROR([zj was not found!])])
 
 

@@ -9,7 +9,7 @@
 -export([rand_dn/0, rand_dn/1]).
 
 applications() ->
-	[crypto, asn1, public_key, ssl, ranch, cowlib, cowboy, chf].
+	[crypto, asn1, public_key, ssl, ranch, cowlib, cowboy, gun, chf].
 
 start() ->
 	start(applications()).

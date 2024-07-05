@@ -6,12 +6,14 @@
 
 ## Configure new build directory
 mkdir -p shell/lib
+RANCH=$(grep vsn ../ranch/ebin/ranch.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
+ln -st shell/lib ../../../ranch ranch-$RANCH
 COWLIB=$(grep vsn ../cowlib/ebin/cowlib.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
 ln -st shell/lib ../../../cowlib cowlib-$COWLIB
 COWBOY=$(grep vsn ../cowboy/ebin/cowboy.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
 ln -st shell/lib ../../../cowboy cowboy-$COWBOY
-RANCH=$(grep vsn ../ranch/ebin/ranch.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
-ln -st shell/lib ../../../ranch ranch-$RANCH
+GUN=$(grep vsn ../gun/ebin/gun.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
+ln -st shell/lib ../../../gun gun-$RANCH
 ZJ=$(grep vsn ../zj/ebin/zj.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
 ln -st shell/lib ../../../zj zj-$ZJ
 
