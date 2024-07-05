@@ -6,7 +6,8 @@
 check_DATA = .dialyzer_ok .common_test_ok
 
 testmods = chf_test_lib \
-		chf_api_SUITE
+		chf_api_SUITE \
+		chf_nchf_SUITE
 
 DIA_ARGS =
 CT_ARGS = -spec test.spec
