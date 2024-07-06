@@ -49,25 +49,29 @@
 start(normal = _StartType, _Args) ->
 	case supervisor:start_link(chf_sup, []) of
 		{ok, TopSup} ->
-			start1(TopSup, supervisor:which_children(TopSup));
+			start1(TopSup, supervisor:which_children(chf_nchf_sup));
 		{error, Reason} ->
 			{error, Reason}
 	end.
 %% @hidden
-start1(TopSup, [{chf_nchf_sup, NchfSup, _, _} | _T]) ->
-	{ok, Nchf} = application:get_env(nchf),
-	start2(TopSup, NchfSup, Nchf);
-start1(TopSup, [_ | T]) ->
-	start1(TopSup, T).
-%% @hidden
-start2(TopSup, NchfSup, [H | T] = _Nchf) ->
-	case supervisor:start_child(NchfSup, [tuple_to_list(H)]) of
+start1(TopSup, [H | T]) ->
+	case supervisor:start_child(chf_nchf_sup, [tuple_to_list(H)]) of
 		{ok, _Child} ->
-			start2(TopSup, NchfSup, T);
+			start1(TopSup, T);
 		{error, Reason} ->
 			{error, Reason}
 	end;
-start2(TopSup, _, []) ->
+start1(TopSup, []) ->
+	start2(TopSup, supervisor:which_children(chf_nrf_sup)).
+%% @hidden
+start2(TopSup, [H | T]) ->
+	case supervisor:start_child(chf_nrf_sup, [tuple_to_list(H), []]) of
+		{ok, _Child} ->
+			start2(TopSup, T);
+		{error, Reason} ->
+			{error, Reason}
+	end;
+start2(TopSup, []) ->
 	{ok, TopSup}.
 
 -spec start_phase(Phase, StartType, PhaseArgs) -> Result

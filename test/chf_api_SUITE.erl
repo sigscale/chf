@@ -26,7 +26,10 @@
 -export([init_per_testcase/2, end_per_testcase/2]).
 
 %% export test cases
--export([start/0, start/1, stop/0, stop/1]).
+-export([start_nchf/0, start_nchf/1,
+		stop_nchf/0, stop_nchf/1,
+		start_nrf/0, start_nrf/1,
+		stop_nrf/0, stop_nrf/1]).
 
 -include_lib("common_test/include/ct.hrl").
 
@@ -75,32 +78,51 @@ sequences() ->
 %% Returns a list of all test cases in this test suite.
 %%
 all() ->
-	[start, stop].
+	[start_nchf, stop_nchf, start_nrf, stop_nrf].
 
 %%---------------------------------------------------------------------
 %%  Test cases
 %%---------------------------------------------------------------------
 
-start() ->
+start_nchf() ->
 	[{userdata, [{doc, "Start an Nchf interface endpoint"}]}].
 
-start(_Config) ->
+start_nchf(_Config) ->
 	Name = chf_test_lib:rand_dn(),
 	Port = rand:uniform(64511) + 1024,
 	TransportOpts = [{port, Port}],
-	{ok, Listener} = chf:start(Name, TransportOpts),
-	true = is_process_alive(Listener).
+	{ok, NchfListenerSup} = chf:start_nchf(Name, TransportOpts),
+	true = is_process_alive(NchfListenerSup).
 
-stop() ->
+stop_nchf() ->
 	[{userdata, [{doc, "Stop an Nchf interface endpoint"}]}].
 
-stop(_Config) ->
+stop_nchf(_Config) ->
 	Name = chf_test_lib:rand_dn(),
 	Port = rand:uniform(64511) + 1024,
 	TransportOpts = [{port, Port}],
-	{ok, Listener} = chf:start(Name, TransportOpts),
-	ok = chf:stop(Name),
-	false = is_process_alive(Listener).
+	{ok, NchfListenerSup} = chf:start_nchf(Name, TransportOpts),
+	ok = chf:stop_nchf(NchfListenerSup),
+	false = is_process_alive(NchfListenerSup).
+
+start_nrf() ->
+	[{userdata, [{doc, "Start an Nrf interface endpoint"}]}].
+
+start_nrf(_Config) ->
+	Host = {127,0,0,1},
+	Port = rand:uniform(64511) + 1024,
+	{ok, NrfConnectionSup} = chf:start_nrf(Host, Port),
+	true = is_process_alive(NrfConnectionSup).
+
+stop_nrf() ->
+	[{userdata, [{doc, "Stop an Nrf interface endpoint"}]}].
+
+stop_nrf(_Config) ->
+	Host = {127,0,0,1},
+	Port = rand:uniform(64511) + 1024,
+	{ok, NrfConnectionSup} = chf:start_nrf(Host, Port),
+	ok = chf:stop_nrf(NrfConnectionSup),
+	false = is_process_alive(NrfConnectionSup).
 
 %%---------------------------------------------------------------------
 %%  Internal functions

@@ -10,6 +10,8 @@ beam_DATA = chf.beam \
 		chf_sup.beam \
 		chf_nchf_sup.beam \
 		chf_nchf_listener_sup.beam \
+		chf_nrf_sup.beam \
+		chf_nrf_connection_fsm.beam \
 		chf_server.beam \
 		chf_nchf_handler.beam \
 		chf_rest.beam

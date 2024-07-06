@@ -35,14 +35,26 @@ configured using the following application environment variables
 		<dd>Defines Nchf interfaces as a list `[NchfInterface]', where
 				`NchfInterface' is either `{Name, Transport, TransportOpts}'
 				or `{Name, Transport, TransportOpts, ProtocolOpts}',
-				see {@link //chf/chf:start/3. chf:start/3,4}.
+				see {@link //chf/chf_chf:start_nchf/3. chf:start_nchf/3,4}.
 				(default: `[{default, tcp, [{port, 8080}]')</dd>
+</dl>
+
+===Nrf Interfaces===
+<dl>
+	<dt>`nrf'</dt>
+		<dd>Defines Nrf interfaces as a list `[NrfInterface]', where
+				`NrfInterface' is either `{Host, Port}' or
+				`{Host, Port, Opts}',
+				see {@link //chf/chf:start_nrf/3. chf:start_nrf/2, 3}.
+				(default: `[{{127,0,0,1}, 8090}]')</dd>
 </dl>
 
 ===Example sys.config===
 ```
 [{chf,
     [{nchf,
-        [{default, tcp, [{port, 8080}]}]}]}].
+        [{default, tcp, [{port, 8080}]}]},
+    {nrf,
+        [{{127,0,0,1}, 8080}]}]}].
 '''
 

@@ -23,70 +23,95 @@
 -author('Vance Shipley <vances@sigscale.org>').
 
 %% export the chf public API
--export([start/2, start/3, start/4, stop/1]).
-
--define(CHARGINGDATA, "/nchf-convergedcharging/v3/chargingdata/").
+-export([start_nchf/2, start_nchf/3, start_nchf/4, stop_nchf/1]).
+-export([start_nrf/2, start_nrf/3, stop_nrf/1]).
 
 %%----------------------------------------------------------------------
 %%  The chf public API
 %%----------------------------------------------------------------------
 
--spec start(Name, TransportOpts) -> Result
+-spec start_nchf(Name, TransportOpts) -> Result
 	when
 		Name :: ranch:ref(),
 		TransportOpts :: ranch_tcp:opts(),
-		Result :: {ok, Listener} | {error, Reason},
-		Listener :: pid(),
-		Reason :: eaddrinuse | term().
+		Result :: {ok, NchfListenerSup} | {error, Reason},
+		NchfListenerSup :: pid(),
+		Reason :: supervisor:startchild_err().
 %% @doc Start an Nchf interface endpoint.
-%% @equiv start(Name, TransportOpts, #{})
-start(Name, TransportOpts) ->
-	start(Name, TransportOpts, #{}).
+%% @equiv start_nchf(Name, TransportOpts, #{})
+start_nchf(Name, TransportOpts) ->
+	start_nchf(Name, TransportOpts, #{}).
 
--spec start(Name, TransportOpts, ProtocolOpts) -> Result
+-spec start_nchf(Name, TransportOpts, ProtocolOpts) -> Result
 	when
 		Name :: ranch:ref(),
 		TransportOpts :: ranch_tcp:opts(),
 		ProtocolOpts :: cowboy:opts(),
-		Result :: {ok, Listener} | {error, Reason},
-		Listener :: pid(),
-		Reason :: eaddrinuse | term().
+		Result :: {ok, NchfListenerSup} | {error, Reason},
+		NchfListenerSup :: pid(),
+		Reason :: supervisor:startchild_err().
 %% @doc Start an Nchf interface endpoint.
-%% @equiv start(Name, tcp, TransportOpts, #{})
-start(Name, TransportOpts, ProtocolOpts) ->
-	start(Name, tcp, TransportOpts, ProtocolOpts).
+%% @equiv start_nchf(Name, tcp, TransportOpts, #{})
+start_nchf(Name, TransportOpts, ProtocolOpts) ->
+	start_nchf(Name, tcp, TransportOpts, ProtocolOpts).
 
--spec start(Name, Transport, TransportOpts, ProtocolOpts) -> Result
+-spec start_nchf(Name, Transport, TransportOpts, ProtocolOpts) -> Result
 	when
 		Name :: ranch:ref(),
 		Transport :: tcp | tls,
 		TransportOpts :: ranch_tcp:opts() | ranch_ssl:opts(),
 		ProtocolOpts :: cowboy:opts(),
-		Result :: {ok, Listener} | {error, Reason},
-		Listener :: pid(),
-		Reason :: eaddrinuse | term().
+		Result :: {ok, NchfListenerSup} | {error, Reason},
+		NchfListenerSup :: pid(),
+		Reason :: supervisor:startchild_err().
 %% @doc Start an Nchf interface endpoint.
-start(Name, Transport, TransportOpts, ProtocolOpts)
+start_nchf(Name, Transport, TransportOpts, ProtocolOpts)
 		when ((Transport == tcp) orelse (Transport == tls)),
 		is_list(TransportOpts), is_map(ProtocolOpts) ->
-	ChargingData = [{?CHARGINGDATA, chf_nchf_handler, []}],
-	Dispatch = cowboy_router:compile([{'_', ChargingData}]),
-	start1(Name, Transport, TransportOpts,
-			ProtocolOpts#{env => #{dispatch => Dispatch}}).
-%% @hidden
-start1(Name, tcp, TransportOpts, ProtocolOpts) ->
-	cowboy:start_clear(Name, TransportOpts, ProtocolOpts);
-start1(Name, tls, TransportOpts, ProtocolOpts) ->
-	cowboy:start_tls(Name, TransportOpts, ProtocolOpts).
+	supervisor:start_child(chf_nchf_sup,
+			[[Name, Transport, TransportOpts, ProtocolOpts]]).
 
--spec stop(Name) -> Result
+-spec stop_nchf(NchfConnectionSup) -> Result
 	when
-		Name :: ranch:ref(),
+		NchfConnectionSup :: pid(),
 		Result :: ok | {error, Reason},
-		Reason :: not_found.
+		Reason :: not_found | simple_one_for_one.
 %% @doc Stop an Nchf interface endpoint.
-stop(Name) ->
-	cowboy:stop_listener(Name).
+stop_nchf(NchfConnectionSup) ->
+	supervisor:terminate_child(chf_nchf_sup, NchfConnectionSup).
+
+-spec start_nrf(Host, Port) -> Result
+	when
+		Host :: inet:hostname() | inet:ip_address(),
+		Port :: inet:port_number(),
+		Result :: {ok, NrfConnectionSup} | {error, Reason},
+		NrfConnectionSup :: pid(),
+		Reason :: supervisor:startchild_err().
+%% @doc Start an Nrf interface endpoint.
+%% @equiv start_nrf(Host, Port, #{})
+start_nrf(Host, Port) ->
+	start_nrf(Host, Port, #{}).
+
+-spec start_nrf(Host, Port, Opts) -> Result
+	when
+		Host :: inet:hostname() | inet:ip_address(),
+		Port :: inet:port_number(),
+		Opts :: gun:opts(),
+		Result :: {ok, NrfConnectionSup} | {error, Reason},
+		NrfConnectionSup :: pid(),
+		Reason :: supervisor:startchild_err().
+%% @doc Start an Nrf interface endpoint.
+start_nrf(Host, Port, Opts) ->
+	supervisor:start_child(chf_nrf_sup, [[Host, Port, Opts], []]).
+
+-spec stop_nrf(NrfConnectionSup) -> Result
+	when
+		NrfConnectionSup :: pid(),
+		Result :: ok | {error, Reason},
+		Reason :: not_found | simple_one_for_one.
+%% @doc Stop an Nrf interface endpoint.
+stop_nrf(NrfConnectionSup) ->
+	supervisor:terminate_child(chf_nrf_sup, NrfConnectionSup).
 
 %%----------------------------------------------------------------------
 %%  internal functions

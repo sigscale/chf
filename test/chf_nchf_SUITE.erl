@@ -55,7 +55,7 @@ init_per_suite(Config) ->
 	Port = rand:uniform(64511) + 1024,
 	Path = ct:get_config({nchf, path}),
 	TransportOpts = [{ip, Host}, {port, Port}],
-	{ok, _Listener} = chf:start(Name, TransportOpts),
+	{ok, _NchfListenerSup} = chf:start_nchf(Name, TransportOpts),
 	[{host, Host}, {port, Port}, {path, Path} | Config].
 
 -spec end_per_suite(Config :: [tuple()]) -> any().

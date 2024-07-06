@@ -31,6 +31,8 @@
 
 -include_lib("kernel/include/logger.hrl").
 
+-define(CHARGINGDATA, "/nchf-convergedcharging/v3/chargingdata/").
+
 -type state() :: #{name := Name :: ranch:ref(), pid := Listener :: pid()}.
 
 %%----------------------------------------------------------------------
@@ -48,12 +50,14 @@
 %% @private
 %%
 init([Name, Transport, TransportOpts] = _Args) ->
-	init1(Name, Transport, TransportOpts, #{});
+	case start_nchf(Name, Transport, TransportOpts) of
+		{ok, Listener} ->
+			{ok, Listener, #{name => Name, pid => Listener}};
+		{error, Reason} ->
+			{error, Reason}
+	end;
 init([Name, Transport, TransportOpts, ProtocolOpts] = _Args) ->
-	init1(Name, Transport, TransportOpts, ProtocolOpts).
-%% @hidden
-init1(Name, Transport, TransportOpts, ProtocolOpts) ->
-	case chf:start(Name, Transport, TransportOpts, ProtocolOpts) of
+	case start_nchf(Name, Transport, TransportOpts, ProtocolOpts) of
 		{ok, Listener} ->
 			{ok, Listener, #{name => Name, pid => Listener}};
 		{error, Reason} ->
@@ -67,7 +71,7 @@ init1(Name, Transport, TransportOpts, ProtocolOpts) ->
 %% @see //stdlib/gen_server_bridge:terminate/2
 %% @private
 terminate(_Reason, #{name := Name, pid := Listener} = _State) ->
-	case chf:stop(Name) of
+	case cowboy:stop_listener(Name) of
 		ok ->
 			ok;
 		{error, Reason} ->
@@ -78,4 +82,42 @@ terminate(_Reason, #{name := Name, pid := Listener} = _State) ->
 %%----------------------------------------------------------------------
 %%  internal functions
 %%----------------------------------------------------------------------
+
+-spec start_nchf(Name, TransportOpts, ProtocolOpts) -> Result
+	when
+		Name :: ranch:ref(),
+		TransportOpts :: ranch_tcp:opts(),
+		ProtocolOpts :: cowboy:opts(),
+		Result :: {ok, Listener} | {error, Reason},
+		Listener :: pid(),
+		Reason :: eaddrinuse | term().
+%% @doc Start an Nchf interface endpoint.
+%% @equiv start_nchf(Name, tcp, TransportOpts, #{})
+%% @hidden
+start_nchf(Name, TransportOpts, ProtocolOpts) ->
+	start_nchf(Name, tcp, TransportOpts, ProtocolOpts).
+
+-spec start_nchf(Name, Transport, TransportOpts, ProtocolOpts) -> Result
+	when
+		Name :: ranch:ref(),
+		Transport :: tcp | tls,
+		TransportOpts :: ranch_tcp:opts() | ranch_ssl:opts(),
+		ProtocolOpts :: cowboy:opts(),
+		Result :: {ok, Listener} | {error, Reason},
+		Listener :: pid(),
+		Reason :: eaddrinuse | term().
+%% @doc Start an Nchf interface endpoint.
+%% @hidden
+start_nchf(Name, Transport, TransportOpts, ProtocolOpts)
+		when ((Transport == tcp) orelse (Transport == tls)),
+		is_list(TransportOpts), is_map(ProtocolOpts) ->
+	ChargingData = [{?CHARGINGDATA, chf_nchf_handler, []}],
+	Dispatch = cowboy_router:compile([{'_', ChargingData}]),
+	start1_nchf(Name, Transport, TransportOpts,
+			ProtocolOpts#{env => #{dispatch => Dispatch}}).
+%% @hidden
+start1_nchf(Name, tcp, TransportOpts, ProtocolOpts) ->
+	cowboy:start_clear(Name, TransportOpts, ProtocolOpts);
+start1_nchf(Name, tls, TransportOpts, ProtocolOpts) ->
+	cowboy:start_tls(Name, TransportOpts, ProtocolOpts).
 

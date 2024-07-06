@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" viewBox="161.7 -34 310.5 264.8" width="310.5" height="264.8">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" viewBox="161.7 -34 499 264.8" width="499" height="264.8">
   <defs/>
   <g id="Supervision" fill-opacity="1" stroke="none" stroke-opacity="1" stroke-dasharray="none" fill="none">
     <title>Supervision</title>
     <g id="Supervision_Layer_1">
       <title>Layer 1</title>
       <g id="Graphic_38">
-        <ellipse cx="317" cy="-3" rx="80.0001278321517" ry="30.0000479370569" fill="#a8d7ff"/>
-        <text transform="translate(258 -15)" fill="black">
+        <ellipse cx="391.2" cy="-3" rx="80.0001278321517" ry="30.0000479370569" fill="#a8d7ff"/>
+        <text transform="translate(332.2 -15)" fill="black">
           <tspan font-family="Helvetica" font-size="11" fill="black" x="39.73657" y="10" xml:space="preserve">chf_sup</tspan>
           <tspan font-family="Helvetica" font-size="9" fill="#797979" x="23.215332" y="22" xml:space="preserve">{one_for_one,1,5}</tspan>
         </text>
@@ -21,11 +21,11 @@
         </text>
       </g>
       <g id="Line_57">
-        <line x1="248.00508" y1="71.18966" x2="290.65056" y2="25.333332" stroke="#aaa" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        <line x1="261.04634" y1="75.323925" x2="348.881" y2="22.466737" stroke="#aaa" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
       </g>
       <g id="Graphic_56">
-        <rect x="258.68655" y="50.713835" width="5.5615234" height="12" fill="white"/>
-        <text transform="translate(258.68655 50.713835)" fill="#797979">
+        <rect x="285.99303" y="52.638085" width="5.5615234" height="12" fill="white"/>
+        <text transform="translate(285.99303 52.638085)" fill="#797979">
           <tspan font-family="Helvetica" font-size="10" fill="#797979" x="0" y="10" xml:space="preserve">1</tspan>
         </text>
       </g>
@@ -38,11 +38,11 @@
         </text>
       </g>
       <g id="Line_61">
-        <line x1="370.0263" y1="69.46448" x2="338.17373" y2="25.93552" stroke="#aaa" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        <line x1="391.2" y1="68.39999" x2="391.2" y2="27.000015" stroke="#aaa" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
       </g>
       <g id="Graphic_60">
-        <rect x="357.19037" y="49.723355" width="5.5615234" height="12" fill="white"/>
-        <text transform="translate(357.19037 49.723355)" fill="#797979">
+        <rect x="388.41924" y="49.330935" width="5.5615234" height="12" fill="white"/>
+        <text transform="translate(388.41924 49.330935)" fill="#797979">
           <tspan font-family="Helvetica" font-size="10" fill="#797979" x="0" y="10" xml:space="preserve">1</tspan>
         </text>
       </g>
@@ -59,6 +59,39 @@
       <g id="Graphic_63">
         <rect x="387.58916" y="150.73094" width="7.22168" height="12" fill="white"/>
         <text transform="translate(387.58916 150.73094)" fill="#797979">
+          <tspan font-family="Helvetica" font-size="10" fill="#797979" x="0" y="10" xml:space="preserve">N</tspan>
+        </text>
+      </g>
+      <g id="Graphic_65">
+        <ellipse cx="579.7" cy="98.4" rx="80.0001278321517" ry="30.0000479370569" fill="#a8d7ff"/>
+        <text transform="translate(520.7 80.9)" fill="#797979">
+          <tspan font-family="Helvetica" font-size="9" fill="#797979" x="37.486572" y="9" xml:space="preserve">permanent</tspan>
+          <tspan font-family="Helvetica" font-size="11" fill="black" x="30.259277" y="21" xml:space="preserve">chf_nrf_sup</tspan>
+          <tspan font-family="Helvetica" font-size="9" fill="#797979" x="7.7092285" y="33" xml:space="preserve">{simple_one_for_one,1,5}</tspan>
+        </text>
+      </g>
+      <g id="Line_67">
+        <line x1="533.94246" y1="73.785595" x2="436.95755" y2="21.614406" stroke="#aaa" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+      <g id="Graphic_66">
+        <rect x="500.5457" y="51.31631" width="5.5615234" height="12" fill="white"/>
+        <text transform="translate(500.5457 51.31631)" fill="#797979">
+          <tspan font-family="Helvetica" font-size="10" fill="#797979" x="0" y="10" xml:space="preserve">1</tspan>
+        </text>
+      </g>
+      <g id="Graphic_105">
+        <ellipse cx="579.7" cy="199.8" rx="80.0001278321517" ry="30.0000479370569" fill="#d5fed6"/>
+        <text transform="translate(520.7 187.8)" fill="#797979">
+          <tspan font-family="Helvetica" font-size="9" fill="#797979" x="37.486572" y="9" xml:space="preserve">permanent</tspan>
+          <tspan font-family="Helvetica" font-size="11" fill="black" x=".60546875" y="21" xml:space="preserve">chf_nrf_connection_fsm</tspan>
+        </text>
+      </g>
+      <g id="Line_100">
+        <line x1="579.7" y1="169.79999" x2="579.7" y2="128.40002" stroke="#aaa" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+      <g id="Graphic_99">
+        <rect x="576.0892" y="150.56016" width="7.22168" height="12" fill="white"/>
+        <text transform="translate(576.0892 150.56016)" fill="#797979">
           <tspan font-family="Helvetica" font-size="10" fill="#797979" x="0" y="10" xml:space="preserve">N</tspan>
         </text>
       </g>

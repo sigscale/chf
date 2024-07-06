@@ -7,6 +7,8 @@
 				chf_sup,
 				chf_nchf_sup,
 				chf_nchf_listener_sup,
+				chf_nrf_sup,
+				chf_nrf_connection_sup,
 				chf_server,
 				chf_nchf_handler,
 				chf_rest]},
@@ -25,6 +27,14 @@
 								% 		Transport :: tcp | tls,
 								% 		TransportOpts :: ranch_tcp:opts() | ranch_ssl:opts(),
 								% 		ProtocolOpts :: cowboy:opts()
+						]},
+				{nrf,
+						[{{127,0,0,1}, 8090}
+								% {Host, Port} | {Host, Port, Opts}
+								% 		Host :: inet:hostname() | inet:ip_address()
+								% 		Port :: inet:port_number()
+								% 		Opts :: gun:opts()
 						]}
 				]},
-		{mod, {chf_app,[]}}]}.
+		{mod,
+				{chf_app,[]}}]}.
