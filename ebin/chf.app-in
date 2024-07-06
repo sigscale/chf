@@ -8,7 +8,7 @@
 				chf_nchf_sup,
 				chf_nchf_listener_sup,
 				chf_nrf_sup,
-				chf_nrf_connection_sup,
+				chf_nrf_connection_fsm,
 				chf_server,
 				chf_nchf_handler,
 				chf_rest]},
