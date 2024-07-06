@@ -5,6 +5,8 @@
 				[chf,
 				chf_app,
 				chf_sup,
+				chf_nchf_sup,
+				chf_nchf_listener_sup,
 				chf_server,
 				chf_nchf_handler,
 				chf_rest]},

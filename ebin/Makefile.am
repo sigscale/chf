@@ -8,6 +8,8 @@ EXTRA_DIST = chf.app
 beam_DATA = chf.beam \
 		chf_app.beam \
 		chf_sup.beam \
+		chf_nchf_sup.beam \
+		chf_nchf_listener_sup.beam \
 		chf_server.beam \
 		chf_nchf_handler.beam \
 		chf_rest.beam

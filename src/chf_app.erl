@@ -47,25 +47,28 @@
 		Reason :: term().
 %% @doc Starts the application processes.
 start(normal = _StartType, _Args) ->
-	{ok, Nchfs} = application:get_env(nchf),
-	start1(Nchfs, []).
-%% @hidden
-start1([{Name, Transport, TransportOpts} | T] = _Nchfs, State) ->
-	start1([{Name, Transport, TransportOpts, #{}} | T], State);
-start1([{Name, Transport, TransportOpts, ProtocolOpts} | T] = _Nchfs, State) ->
-	case chf:start(Name, Transport, TransportOpts, ProtocolOpts) of
-		{ok, Listener} ->
-			start1(T, [{Name, Listener} | State]);
-		{error, Reason} ->
-			{error, Reason}
-	end;
-start1([], State) ->
 	case supervisor:start_link(chf_sup, []) of
-		{ok, Sup} ->
-			{ok, Sup, State};
+		{ok, TopSup} ->
+			start1(TopSup, supervisor:which_children(TopSup));
 		{error, Reason} ->
 			{error, Reason}
 	end.
+%% @hidden
+start1(TopSup, [{chf_nchf_sup, NchfSup, _, _} | _T]) ->
+	{ok, Nchf} = application:get_env(nchf),
+	start2(TopSup, NchfSup, Nchf);
+start1(TopSup, [_ | T]) ->
+	start1(TopSup, T).
+%% @hidden
+start2(TopSup, NchfSup, [H | T] = _Nchf) ->
+	case supervisor:start_child(NchfSup, [tuple_to_list(H)]) of
+		{ok, _Child} ->
+			start2(TopSup, NchfSup, T);
+		{error, Reason} ->
+			{error, Reason}
+	end;
+start2(TopSup, _, []) ->
+	{ok, TopSup}.
 
 -spec start_phase(Phase, StartType, PhaseArgs) -> Result
 	when
@@ -88,16 +91,7 @@ start_phase(_Phase, _StartType, _PhaseArgs) ->
 %%   before any processes are terminated.
 %% @see //kernel/application:stop/1
 %%
-prep_stop([{Name, Listener} | T] = _State) ->
-	case chf:stop(Name) of
-		ok ->
-			prep_stop(T);
-		{error, Reason} ->
-			?LOG_WARNING(#{module => ?MODULE, function => prep_stop,
-					nchf => Name, listener => Listener, reason => Reason}),
-			prep_stop(T)
-	end;
-prep_stop([] = State) ->
+prep_stop(State) ->
 	State.
 
 -spec stop(State) -> any()

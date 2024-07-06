@@ -1,4 +1,4 @@
-%%% chf_sup.erl
+%%% chf_nchf_sup.erl
 %%% vim: ts=3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% @copyright 2024 SigScale Global Inc.
@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% @docfile "{@docsrc supervision.edoc}"
 %%%
--module(chf_sup).
+-module(chf_nchf_sup).
 -copyright('Copyright (c) 2024 SigScale Global Inc.').
 -author('Vance Shipley <vances@sigscale.org>').
 
@@ -26,10 +26,6 @@
 
 %% export the callback needed for supervisor behaviour
 -export([init/1]).
-
--type registered_name() :: {local, Name :: atom()}
-		| {global, Name :: atom()}
-		| {via, ViaModule :: atom(), Name :: any()}.
 
 %%----------------------------------------------------------------------
 %%  The supervisor callback
@@ -46,48 +42,25 @@
 %% @private
 %%
 init(_Args) ->
-	ChildSpecs = [supervisor(chf_nchf_sup, []),
-			server({local, chf}, chf_server, [self()], [])],
-	SupFlags = #{},
+	ChildSpecs = [bridge(chf_nchf_listener_sup)],
+	SupFlags = #{strategy => simple_one_for_one},
 	{ok, {SupFlags, ChildSpecs}}.
 
 %%----------------------------------------------------------------------
 %%  internal functions
 %%----------------------------------------------------------------------
 
--spec supervisor(StartMod, Args) -> Result
+-spec bridge(StartMod) -> Result
 	when
 		StartMod :: atom(),
-		Args :: [term()],
 		Result :: supervisor:child_spec().
 %% @doc Build a supervisor child specification for a
-%%    {@link //stdlib/supervisor. supervisor} behaviour.
+%% 	{@link //stdlib/supervisor_bridge. supervisor_bridge} behaviour.
 %% @private
 %%
-supervisor(StartMod, Args) ->
-	StartArgs = [StartMod, Args],
-	StartFunc = {supervisor, start_link, StartArgs},
+bridge(StartMod) ->
+	StartArgs = [StartMod],
+	StartFunc = {supervisor_bridge, start_link, StartArgs},
 	#{id => StartMod, start => StartFunc,
 			type => supervisor, modules => [StartMod]}.
-
--spec server(RegName, StartMod, Args, Opts) -> Result
-	when
-		RegName :: registered_name(),
-		StartMod :: atom(),
-		Args :: [term()],
-		Opts :: [Option],
-		Option :: {timeout, Timeout} | {debug, [Flag]},
-		Timeout :: pos_integer(),
-		Flag :: trace | log | {log_to_file, file:filename()}
-				| statistics | debug,
-		Result :: supervisor:child_spec().
-%% @doc Build a supervisor child specification for a
-%% 	{@link gen_server. gen_server} behaviour
-%% 	with a registered name and options.
-%% @private
-%%
-server(RegName, StartMod, Args, Opts) ->
-	StartArgs = [RegName, StartMod, Args, Opts],
-	StartFunc = {gen_server, start_link, StartArgs},
-	#{id => StartMod, start => StartFunc, modules => [StartMod]}.
 

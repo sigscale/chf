@@ -6,6 +6,8 @@
 modhtml = chf.html \
 		chf_app.html \
 		chf_sup.html \
+		chf_nchf_sup.html \
+		chf_nchf_listener_sup.html \
 		chf_server.html \
 		chf_nchf_handler.html \
 		chf_rest.html
