@@ -47,14 +47,14 @@ suite() ->
 %% Initiation before the whole suite.
 %%
 init_per_suite(Config) ->
-	ok = chf_test_lib:start(),
+	ok = chf_ct_lib:start(),
 	Config.
 
 -spec end_per_suite(Config :: [tuple()]) -> any().
 %% Cleanup after the whole suite.
 %%
 end_per_suite(_Config) ->
-	ok = chf_test_lib:stop().
+	ok = chf_ct_lib:stop().
 
 -spec init_per_testcase(TestCase :: atom(), Config :: [tuple()]) -> Config :: [tuple()].
 %% Initiation before each test case.
@@ -88,7 +88,7 @@ start_nchf() ->
 	[{userdata, [{doc, "Start an Nchf interface endpoint"}]}].
 
 start_nchf(_Config) ->
-	Name = chf_test_lib:rand_dn(),
+	Name = chf_ct_lib:rand_dn(),
 	Port = rand:uniform(64511) + 1024,
 	TransportOpts = [{port, Port}],
 	{ok, NchfListenerSup} = chf:start_nchf(Name, TransportOpts),
@@ -98,7 +98,7 @@ stop_nchf() ->
 	[{userdata, [{doc, "Stop an Nchf interface endpoint"}]}].
 
 stop_nchf(_Config) ->
-	Name = chf_test_lib:rand_dn(),
+	Name = chf_ct_lib:rand_dn(),
 	Port = rand:uniform(64511) + 1024,
 	TransportOpts = [{port, Port}],
 	{ok, NchfListenerSup} = chf:start_nchf(Name, TransportOpts),
