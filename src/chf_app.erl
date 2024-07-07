@@ -49,7 +49,8 @@
 start(normal = _StartType, _Args) ->
 	case supervisor:start_link(chf_sup, []) of
 		{ok, TopSup} ->
-			start1(TopSup, supervisor:which_children(chf_nchf_sup));
+			{ok, Nchf} = application:get_env(nchf),
+			start1(TopSup, Nchf);
 		{error, Reason} ->
 			{error, Reason}
 	end.
@@ -62,7 +63,8 @@ start1(TopSup, [H | T]) ->
 			{error, Reason}
 	end;
 start1(TopSup, []) ->
-	start2(TopSup, supervisor:which_children(chf_nrf_sup)).
+	{ok, Nrf} = application:get_env(nrf),
+	start2(TopSup, Nrf).
 %% @hidden
 start2(TopSup, [H | T]) ->
 	case supervisor:start_child(chf_nrf_sup, [tuple_to_list(H), []]) of
