@@ -49,25 +49,29 @@
 start(normal = _StartType, _Args) ->
 	case supervisor:start_link(chf_sup, []) of
 		{ok, TopSup} ->
-			{ok, Nchf} = application:get_env(nchf),
-			start1(TopSup, Nchf);
+			Options = [named_table, public,
+					{read_concurrency, true}, {write_concurrency, true},
+					{decentralized_counters, true}],
+			chf_dataref = ets:new(chf_dataref, Options),
+			{ok, Nrf} = application:get_env(nrf),
+			start1(TopSup, Nrf);
 		{error, Reason} ->
 			{error, Reason}
 	end.
 %% @hidden
 start1(TopSup, [H | T]) ->
-	case supervisor:start_child(chf_nchf_sup, [tuple_to_list(H)]) of
+	case supervisor:start_child(chf_nrf_connection_sup, [tuple_to_list(H), []]) of
 		{ok, _Child} ->
 			start1(TopSup, T);
 		{error, Reason} ->
 			{error, Reason}
 	end;
 start1(TopSup, []) ->
-	{ok, Nrf} = application:get_env(nrf),
-	start2(TopSup, Nrf).
+	{ok, Nchf} = application:get_env(nchf),
+	start2(TopSup, Nchf).
 %% @hidden
 start2(TopSup, [H | T]) ->
-	case supervisor:start_child(chf_nrf_connection_sup, [tuple_to_list(H), []]) of
+	case supervisor:start_child(chf_nchf_sup, [tuple_to_list(H)]) of
 		{ok, _Child} ->
 			start2(TopSup, T);
 		{error, Reason} ->
