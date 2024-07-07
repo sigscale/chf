@@ -96,9 +96,13 @@ down(enter = _EventType, down = _EventContent,
 		{error, Reason} ->
 			{stop, Reason}
 	end;
+down(enter = _EventType, _EventContent,
+		#{pid:= ConnPid} = Data) ->
+	pg:leave(chf, nrf, ConnPid),
+	{keep_state, maps:remove(pid, Data)};
 down(info = _EventType,
 		{gun_up, ConnPid, Protocol},
-		#{host := Host, port := Port, protocol := Protocol} = Data) ->
+		#{host := Host, port := Port} = Data) ->
 	Endpoint = endpoint(Host, Port),
 	?LOG_INFO(#{?MODULE => up, Protocol => Endpoint}),
 	{next_state, up, Data#{pid => ConnPid, protocol => Protocol}};
@@ -129,7 +133,8 @@ down(info, {'EXIT', ConnPid, Reason}, #{pid := ConnPid} = Data) ->
 		Result :: gen_statem:event_handler_result(state()).
 %% @doc Handles events received in the <em>up</em> state.
 %% @private
-up(enter = _EventType, _EventContent, _Data) ->
+up(enter = _EventType, _EventContent, #{pid := ConnPid} = _Data) ->
+	pg:join(chf, nrf, ConnPid),
 	keep_state_and_data;
 up(info = _EventType,
 		{gun_upgrade, ConnPid, _StreamRef, Protocols, _Headers},
@@ -151,7 +156,7 @@ up(info, {gun_down,
 	Endpoint = endpoint(Host, Port),
 	?LOG_INFO(#{?MODULE => down, Protocol => Endpoint,
 			error => Reason, killed_streams => length(KilledStreams)}),
-	{next_state, down, maps:remove(ConnPid, Data)};
+	{next_state, down, Data};
 up(info = _EventType,
 		{gun_error, ConnPid, Reason},
 		#{pid := ConnPid, host := Host, port := Port,

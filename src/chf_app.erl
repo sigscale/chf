@@ -67,7 +67,7 @@ start1(TopSup, []) ->
 	start2(TopSup, Nrf).
 %% @hidden
 start2(TopSup, [H | T]) ->
-	case supervisor:start_child(chf_nrf_sup, [tuple_to_list(H), []]) of
+	case supervisor:start_child(chf_nrf_connection_sup, [tuple_to_list(H), []]) of
 		{ok, _Child} ->
 			start2(TopSup, T);
 		{error, Reason} ->

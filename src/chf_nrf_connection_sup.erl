@@ -1,4 +1,4 @@
-%%% chf_nrf_sup.erl
+%%% chf_nrf_connection_sup.erl
 %%% vim: ts=3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% @copyright 2024 SigScale Global Inc.
@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% @docfile "{@docsrc supervision.edoc}"
 %%%
--module(chf_nrf_sup).
+-module(chf_nrf_connection_sup).
 -copyright('Copyright (c) 2024 SigScale Global Inc.').
 -author('Vance Shipley <vances@sigscale.org>').
 

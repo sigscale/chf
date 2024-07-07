@@ -47,7 +47,7 @@
 %%
 init(_Args) ->
 	ChildSpecs = [supervisor({local, chf_nchf_sup}, chf_nchf_sup, []),
-			supervisor({local, chf_nrf_sup}, chf_nrf_sup, []),
+			supervisor(chf_nrf_sup, []),
 			server({local, chf_server}, chf_server, [self()], [])],
 	SupFlags = #{},
 	{ok, {SupFlags, ChildSpecs}}.
@@ -56,6 +56,21 @@ init(_Args) ->
 %%  internal functions
 %%----------------------------------------------------------------------
 
+-spec supervisor(StartMod, Args) -> Result
+	when
+		StartMod :: atom(),
+		Args :: [term()],
+		Result :: supervisor:child_spec().
+%% @doc Build a supervisor child specification for a
+%%    {@link //stdlib/supervisor. supervisor} behaviour.
+%% @private
+%%
+supervisor(StartMod, Args) ->
+	StartArgs = [StartMod, Args],
+	StartFunc = {supervisor, start_link, StartArgs},
+	#{id => StartMod, start => StartFunc,
+			type => supervisor, modules => [StartMod]}.
+
 -spec supervisor(RegName, StartMod, Args) -> Result
 	when
 		RegName :: registered_name(),
@@ -63,7 +78,8 @@ init(_Args) ->
 		Args :: [term()],
 		Result :: supervisor:child_spec().
 %% @doc Build a supervisor child specification for a
-%%    {@link //stdlib/supervisor. supervisor} behaviour.
+%%    {@link //stdlib/supervisor. supervisor} behaviour
+%% 	with a registered name.
 %% @private
 %%
 supervisor(RegName, StartMod, Args) ->

@@ -102,7 +102,7 @@ start_nrf(Host, Port) ->
 		Reason :: supervisor:startchild_err().
 %% @doc Start an Nrf interface endpoint.
 start_nrf(Host, Port, Opts) ->
-	supervisor:start_child(chf_nrf_sup, [[Host, Port, Opts], []]).
+	supervisor:start_child(chf_nrf_connection_sup, [[Host, Port, Opts], []]).
 
 -spec stop_nrf(NrfConnectionSup) -> Result
 	when
@@ -111,7 +111,7 @@ start_nrf(Host, Port, Opts) ->
 		Reason :: not_found | simple_one_for_one.
 %% @doc Stop an Nrf interface endpoint.
 stop_nrf(NrfConnectionSup) ->
-	supervisor:terminate_child(chf_nrf_sup, NrfConnectionSup).
+	supervisor:terminate_child(chf_nrf_connection_sup, NrfConnectionSup).
 
 %%----------------------------------------------------------------------
 %%  internal functions

@@ -9,6 +9,7 @@ modhtml = chf.html \
 		chf_nchf_sup.html \
 		chf_nchf_listener_sup.html \
 		chf_nrf_sup.html \
+		chf_nrf_connection_sup.html \
 		chf_nrf_connection_fsm.html \
 		chf_server.html \
 		chf_nchf_handler.html \
