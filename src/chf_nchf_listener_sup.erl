@@ -83,19 +83,19 @@ terminate(_Reason, #{name := Name, pid := Listener} = _State) ->
 %%  internal functions
 %%----------------------------------------------------------------------
 
--spec start_nchf(Name, TransportOpts, ProtocolOpts) -> Result
+-spec start_nchf(Name, Transport, TransportOpts) -> Result
 	when
 		Name :: ranch:ref(),
-		TransportOpts :: ranch_tcp:opts(),
-		ProtocolOpts :: cowboy:opts(),
+		Transport :: tcp | tls,
+		TransportOpts :: ranch_tcp:opts() | ranch_ssl:opts(),
 		Result :: {ok, Listener} | {error, Reason},
 		Listener :: pid(),
 		Reason :: eaddrinuse | term().
 %% @doc Start an Nchf interface endpoint.
 %% @equiv start_nchf(Name, tcp, TransportOpts, #{})
 %% @hidden
-start_nchf(Name, TransportOpts, ProtocolOpts) ->
-	start_nchf(Name, tcp, TransportOpts, ProtocolOpts).
+start_nchf(Name, Transport, TransportOpts) ->
+	start_nchf(Name, Transport, TransportOpts, #{}).
 
 -spec start_nchf(Name, Transport, TransportOpts, ProtocolOpts) -> Result
 	when
