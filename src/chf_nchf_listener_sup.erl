@@ -31,7 +31,7 @@
 
 -include_lib("kernel/include/logger.hrl").
 
--define(CHARGINGDATA, "/nchf-convergedcharging/v3/chargingdata/").
+-define(CHARGINGDATA, <<"/nchf-convergedcharging/v3/chargingdata/">>).
 
 -type state() :: #{name := Name :: ranch:ref(), pid := Listener :: pid()}.
 
@@ -111,8 +111,16 @@ start_nchf(Name, Transport, TransportOpts) ->
 start_nchf(Name, Transport, TransportOpts, ProtocolOpts)
 		when ((Transport == tcp) orelse (Transport == tls)),
 		is_list(TransportOpts), is_map(ProtocolOpts) ->
-	ChargingData = [{?CHARGINGDATA, chf_nchf_handler, []}],
-	Dispatch = cowboy_router:compile([{'_', ChargingData}]),
+	ChargingData = [{?CHARGINGDATA, chf_nchf_handler, #{}}],
+	BasePath = ?CHARGINGDATA,
+	PathMatch1 = [BasePath],
+	PathMatch2 = [BasePath, <<":ChargingDataRef/update">>],
+	PathMatch3 = [BasePath, <<":ChargingDataRef/release">>],
+	Paths = [PathMatch1, PathMatch2, PathMatch3],
+	PathList = [{P, chf_nchf_handler, #{}} || P <- Paths],
+	HostMatch = '_',
+	Routes = [{HostMatch, PathList}],
+	Dispatch = cowboy_router:compile(Routes),
 	start1_nchf(Name, Transport, TransportOpts,
 			ProtocolOpts#{env => #{dispatch => Dispatch}}).
 %% @hidden
