@@ -13,7 +13,7 @@ ln -st shell/lib ../../../cowlib cowlib-$COWLIB
 COWBOY=$(grep vsn ../cowboy/ebin/cowboy.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
 ln -st shell/lib ../../../cowboy cowboy-$COWBOY
 GUN=$(grep vsn ../gun/ebin/gun.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
-ln -st shell/lib ../../../gun gun-$RANCH
+ln -st shell/lib ../../../gun gun-$GUN
 ZJ=$(grep vsn ../zj/ebin/zj.app | sed -e 's/.*{vsn, *\"\([0-9.]*\)\".*/\1/')
 ln -st shell/lib ../../../zj zj-$ZJ
 
