@@ -1,3 +1,5 @@
 [{chf,
 		[{nchf,
-				[{default, tcp, [{port, 8080}]}]}]}].
+				[{default, tcp, [{port, 8080}]}]},
+      {nrf,
+            [{{127,0,0,1}, 8090}]}]}].
