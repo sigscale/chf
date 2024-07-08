@@ -111,7 +111,6 @@ start_nchf(Name, Transport, TransportOpts) ->
 start_nchf(Name, Transport, TransportOpts, ProtocolOpts)
 		when ((Transport == tcp) orelse (Transport == tls)),
 		is_list(TransportOpts), is_map(ProtocolOpts) ->
-	ChargingData = [{?CHARGINGDATA, chf_nchf_handler, #{}}],
 	BasePath = ?CHARGINGDATA,
 	PathMatch1 = [BasePath],
 	PathMatch2 = [BasePath, <<":ChargingDataRef/update">>],
