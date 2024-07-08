@@ -104,7 +104,7 @@ init_per_suite2(Config) ->
 init_per_suite3(Config) ->
 	Host = proplists:get_value(nrf_host, Config),
 	Port = proplists:get_value(nrf_port, Config),
-	Opts = #{transport => tcp, protocols => [http2]},
+	Opts = #{transport => tcp, protocols => [http2, http]},
 	ok = application:set_env(chf, nrf, [{Host, Port, Opts}]),
 	ok = chf_ct_lib:start(),
 	Config.
@@ -122,7 +122,7 @@ init_per_testcase(_TestCase, Config) ->
 	ets:new(rf_dataref, [named_table, public]),
 	Host = proplists:get_value(nchf_host, Config),
 	Port = proplists:get_value(nchf_port, Config),
-	Opts = #{transport => tcp, protocols => [http2]},
+	Opts = #{transport => tcp, protocols => [http2, http]},
 	{ok, ConnPid} = gun:open(Host, Port, Opts),
 	[{conn_pid, ConnPid} | Config].
 
