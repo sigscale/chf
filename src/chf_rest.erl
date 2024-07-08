@@ -24,6 +24,7 @@
 
 %% export the chf_rest  public API
 -export([now/0, date/1, iso8601/1]).
+-export([id/0]).
 
 % calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}})
 -define(EPOCH, 62167219200).
@@ -111,6 +112,15 @@ iso8601_time([], {H, Mi, S, Ms}) ->
 	{H, Mi, S, Ms};
 iso8601_time([], []) ->
 	{0,0,0,0}.
+
+-spec id() -> ID
+	when
+		ID :: binary().
+%% @doc Create uniform unique resource identifier.
+id() ->
+	TS = integer_to_binary(erlang:system_time(millisecond)),
+	N = integer_to_binary(erlang:unique_integer([positive])),
+	iolist_to_binary([TS, $-, N]).
 
 %%----------------------------------------------------------------------
 %%  internal functions
