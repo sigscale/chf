@@ -42,14 +42,16 @@
 %% Require variables and set default values for the suite.
 %%
 suite() ->
-   [{userdata, [{doc, "Test suite for Nchf Interface in CHF"}]},
+	[{userdata, [{doc, "Test suite for Nchf Interface in CHF"}]},
 	{require, nchf},
 	{default_config, nchf,
 			[{host, {127,0,0,1}},
+			{transport, tls},
 			{path, <<"/nchf-convergedcharging/v3/chargingdata">>}]},
 	{require, nrf},
 	{default_config, nrf,
 			[{host, {127,0,0,1}},
+			{transport, tls},
 			{path, <<"/nrf-rating/v1/ratingdata">>}]},
    {timetrap, {minutes, 1}}].
 
@@ -62,8 +64,18 @@ init_per_suite(Config) ->
 	Host = ct:get_config({nchf, host}),
 	Port = rand:uniform(64511) + 1024,
 	Path = ct:get_config({nchf, path}),
-	TransportOpts = [{ip, Host}, {port, Port}],
-	ok = application:set_env(chf, nchf, [{Name, tcp, TransportOpts}]),
+	Transport = ct:get_config({nchf, transport}),
+	DataDir  = proplists:get_value(data_dir, Config),
+	CertFile = DataDir ++ "/cert.pem",
+	KeyFile = DataDir ++ "/key.pem",
+	TransportOpts = case Transport of
+		tcp ->
+			[{ip, Host}, {port, Port}];
+		tls ->
+			TlsOpts = [{certfile, CertFile}, {keyfile, KeyFile}],
+			[{ip, Host}, {port, Port} | TlsOpts]
+	end,
+	ok = application:set_env(chf, nchf, [{Name, Transport, TransportOpts}]),
 	Config1 = [{nchf_host, Host}, {nchf_port, Port},
 			{nchf_path, Path}, {nchf_name, Name} | Config],
 	init_per_suite1(Config1).
@@ -90,9 +102,19 @@ init_per_suite2(Config) ->
 	HostMatch = '_',
 	Routes = [{HostMatch, PathList}],
 	Dispatch = cowboy_router:compile(Routes),
-	TransportOpts = [{ip, Host}, {port, Port}],
+	Transport = ct:get_config({nchf, transport}),
+	DataDir  = proplists:get_value(data_dir, Config),
+	CertFile = DataDir ++ "/cert.pem",
+	KeyFile = DataDir ++ "/key.pem",
+	{StartMod, TransportOpts} = case Transport of
+		tcp ->
+			{start_clear, [{ip, Host}, {port, Port}]};
+		tls ->
+			TlsOpts = [{certfile, CertFile}, {keyfile, KeyFile}],
+			{start_tls, [{ip, Host}, {port, Port} | TlsOpts]}
+	end,
 	ProtocolOpts = #{env => #{dispatch => Dispatch}},
-	case cowboy:start_clear(Name, TransportOpts, ProtocolOpts) of
+	case cowboy:StartMod(Name, TransportOpts, ProtocolOpts) of
 		{ok, Listener} ->
 			Config1 = [{nrf_host, Host}, {nrf_port, Port},
 					{nrf_path, Path}, {nrf_name, Name},
@@ -104,7 +126,16 @@ init_per_suite2(Config) ->
 init_per_suite3(Config) ->
 	Host = proplists:get_value(nrf_host, Config),
 	Port = proplists:get_value(nrf_port, Config),
-	Opts = #{transport => tcp, protocols => [http2]},
+	Transport = ct:get_config({nrf, transport}),
+	DataDir  = proplists:get_value(data_dir, Config),
+	CACertFile = DataDir ++ "/CAcert.pem",
+	Opts = case Transport of
+		tcp ->
+			#{transport => tcp};
+		tls ->
+			TlsOpts = [{verify, verify_none}, {cacertfile, CACertFile}],
+			#{transport => tls, tls_opts => TlsOpts}
+	end,
 	ok = application:set_env(chf, nrf, [{Host, Port, Opts}]),
 	ok = chf_ct_lib:start(),
 	Config.
@@ -122,7 +153,16 @@ init_per_testcase(_TestCase, Config) ->
 	ets:new(rf_dataref, [named_table, public]),
 	Host = proplists:get_value(nchf_host, Config),
 	Port = proplists:get_value(nchf_port, Config),
-	Opts = #{transport => tcp, protocols => [http2]},
+	Transport = ct:get_config({nrf, transport}),
+	DataDir  = proplists:get_value(data_dir, Config),
+	CACertFile = DataDir ++ "/CAcert.pem",
+	Opts = case Transport of
+		tcp ->
+			#{transport => tcp};
+		tls ->
+			TlsOpts = [{verify, verify_none}, {cacertfile, CACertFile}],
+			#{transport => tls, tls_opts => TlsOpts}
+	end,
 	{ok, ConnPid} = gun:open(Host, Port, Opts),
 	[{conn_pid, ConnPid} | Config].
 
