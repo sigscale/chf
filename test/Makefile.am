@@ -5,7 +5,9 @@
 
 check_DATA = .dialyzer_ok .common_test_ok
 
-testmods = chf_test_lib \
+testmods = chf_ct_lib \
+		chf_rf_server \
+		chf_nrf_handler \
 		chf_api_SUITE \
 		chf_nchf_SUITE
 

@@ -1,7 +1,7 @@
-%%% chf_test_lib.erl
+%%% chf_ct_lib.erl
 %%% vim: ts=3
 %%%
--module(chf_test_lib).
+-module(chf_ct_lib).
 
 -export([start/0, start/1, stop/0, stop/1]).
 -export([load/1, unload/1]).
@@ -14,6 +14,13 @@ applications() ->
 start() ->
 	start(applications()).
 
+start(Application) when is_atom(Application) ->
+	F = fun(A) when A /= Application ->
+				true;
+			(_) ->
+				false
+	end,
+	start(lists:takewhile(F, applications()) ++ [Application]);
 start([H | T]) ->
 	case application:start(H) of
 		ok  ->
@@ -71,7 +78,7 @@ rand_name() ->
 
 %% @doc Returns N random printable characters.
 rand_name(N) ->
-	UpperCase = lists:seq(65, 90),	
+	UpperCase = lists:seq(65, 90),
 	LowerCase = lists:seq(97, 122),
 	Digits = lists:seq(48, 57),
 	Special = [$#, $%, $+, $-, $.],
