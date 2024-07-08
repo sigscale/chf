@@ -1,0 +1,6 @@
+June 8, 2024
+------------
+	- Initial release of SigScale CHF
+		- support Nchf interface to 5GC
+		- support Nrf interface to SigScale OCS
+

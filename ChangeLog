@@ -1,0 +1,21 @@
+2024-07-08  Vance Shipley <vances@sigscale.org>
+
+	* remove unused variable
+	* nchf test suite with back end nrf
+	* create unique data references
+	* correct nchf routes
+	* initialize ets table for chargingdataref to nrf connection
+	* refactor supervision tree to include pg; register nrf connections
+	* correct arguments in start nchf
+	* correct getting interfaces to start
+	* rename test utilities library module
+	* document supervision tree changes
+	* start and supervise nrf connection handlers
+	* start cowboy listeners with supervisor bridge
+	* test suite for nchf interface
+	* rest utility library module
+	* include gun http client application
+	* start/stop nchf endpoints
+	* add dialyzer and common_test to 'make check' target
+	* genesis
+
