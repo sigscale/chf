@@ -1,3 +1,8 @@
+2024-07-09  Vance Shipley <vances@sigscale.org>
+
+	* refactor nchf test suite to use tls
+	* default configuration enables nrf
+
 2024-07-08  Vance Shipley <vances@sigscale.org>
 
 	* remove unused variable
