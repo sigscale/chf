@@ -1,5 +1,5 @@
 {application, %APP_NAME%,
-	[{description, "Converged Charging Function (CHF)"},
+	[{description, "5G Core Charging Function (CHF)"},
 		{vsn, "%APP_VERSION%"},
 		{modules,
 				[chf,
