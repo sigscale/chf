@@ -28,6 +28,8 @@
 			terminate/3, code_change/4]).
 %% export the callbacks for gen_statem states.
 -export([down/3, up/3]).
+%% export the public api
+-export([get_state/1]).
 
 -include_lib("kernel/include/logger.hrl").
 
@@ -40,7 +42,19 @@
 		protocol => Protocol :: http | http2 | raw | socks}.
 
 %%----------------------------------------------------------------------
-%%  The chf_nrf_connection_fsm gen_statem callbacks
+%%  the chf_nrf_connection_fsm public api
+%%----------------------------------------------------------------------
+
+-spec get_state(Fsm) -> Result
+	when
+		Fsm :: pid(),
+		Result :: state().
+%% @doc Get the `gen_statem' state data.
+get_state(Fsm) ->
+	gen_statem:call(Fsm, get_state).
+
+%%----------------------------------------------------------------------
+%%  the chf_nrf_connection_fsm gen_statem callbacks
 %%----------------------------------------------------------------------
 
 -spec callback_mode() -> Result
@@ -96,32 +110,30 @@ down(enter = _EventType, down = _EventContent,
 		{error, Reason} ->
 			{stop, Reason}
 	end;
-down(enter = _EventType, _EventContent,
-		#{pid:= ConnPid} = Data) ->
+down(enter, _EventContent, #{pid:= ConnPid} = Data) ->
 	pg:leave(chf, nrf, ConnPid),
 	{keep_state, maps:remove(pid, Data)};
-down(info = _EventType,
-		{gun_up, ConnPid, Protocol},
+down(info, {gun_up, ConnPid, Protocol},
 		#{host := Host, port := Port} = Data) ->
 	Endpoint = endpoint(Host, Port),
 	?LOG_INFO(#{?MODULE => up, Protocol => Endpoint}),
 	{next_state, up, Data#{pid => ConnPid, protocol => Protocol}};
-down(info = _EventType,
-		{gun_error, ConnPid, Reason},
+down(info, {gun_error, ConnPid, Reason},
 		#{pid := ConnPid, host := Host, port := Port,
 		opts := Opts} = Data) ->
 	Endpoint = endpoint(Host, Port),
 	?LOG_ERROR(#{?MODULE => error, host => Endpoint, port => Port,
 			opts => Opts, error => Reason}),
    {stop, Reason, maps:remove(ConnPid, Data)};
-down(info = _EventType,
-		{gun_error, ConnPid, _StreamRef, Reason},
+down(info, {gun_error, ConnPid, _StreamRef, Reason},
 		#{pid := ConnPid, host := Host, port := Port,
 		opts := Opts} = Data) ->
 	Endpoint = endpoint(Host, Port),
 	?LOG_ERROR(#{?MODULE => error, host => Endpoint, port => Port,
 			opts => Opts, error => Reason}),
    {stop, Reason, maps:remove(ConnPid, Data)};
+down({call, From}, get_state, Data) ->
+   {keep_state_and_data, {reply, From, Data}};
 down(info, {'EXIT', ConnPid, Reason}, #{pid := ConnPid} = Data) ->
    {stop, Reason, maps:remove(ConnPid, Data)}.
 
@@ -136,43 +148,40 @@ down(info, {'EXIT', ConnPid, Reason}, #{pid := ConnPid} = Data) ->
 up(enter = _EventType, _EventContent, #{pid := ConnPid} = _Data) ->
 	pg:join(chf, nrf, ConnPid),
 	keep_state_and_data;
-up(info = _EventType,
-		{gun_upgrade, ConnPid, _StreamRef, Protocols, _Headers},
+up(info, {gun_upgrade, ConnPid, _StreamRef, Protocols, _Headers},
 		#{pid := ConnPid, host := Host, port := Port,
 		protocol := Protocol} = Data) ->
 	Endpoint = endpoint(Host, Port),
 	?LOG_INFO(#{?MODULE => upgrade, Protocol => Endpoint,
 			protocols => Protocols}),
    {keep_state, Data};
-up(info = _EventType,
-		{gun_tunnel_up, ConnPid, _StreamRef, Protocol},
+up(info, {gun_tunnel_up, ConnPid, _StreamRef, Protocol},
 		#{pid := ConnPid, host := Host, port := Port} = Data) ->
 	Endpoint = endpoint(Host, Port),
 	?LOG_INFO(#{?MODULE => tunnel_up, Protocol => Endpoint}),
    {keep_state, Data#{protocol => Protocol}};
-up(info, {gun_down,
-		ConnPid, Protocol, Reason, KilledStreams},
+up(info, {gun_down, ConnPid, Protocol, Reason, KilledStreams},
 		#{pid := ConnPid, host := Host, port := Port} = Data) ->
 	Endpoint = endpoint(Host, Port),
 	?LOG_INFO(#{?MODULE => down, Protocol => Endpoint,
 			error => Reason, killed_streams => length(KilledStreams)}),
 	{next_state, down, Data};
-up(info = _EventType,
-		{gun_error, ConnPid, Reason},
+up(info, {gun_error, ConnPid, Reason},
 		#{pid := ConnPid, host := Host, port := Port,
 		opts := Opts} = Data) ->
 	Endpoint = endpoint(Host, Port),
 	?LOG_ERROR(#{?MODULE => error, host => Endpoint, port => Port,
 			opts => Opts, error => Reason}),
    {stop, Reason, maps:remove(ConnPid, Data)};
-up(info = _EventType,
-		{gun_error, ConnPid, _StreamRef, Reason},
+up(info, {gun_error, ConnPid, _StreamRef, Reason},
 		#{pid := ConnPid, host := Host, port := Port,
 		opts := Opts} = Data) ->
 	Endpoint = endpoint(Host, Port),
 	?LOG_ERROR(#{?MODULE => error, host => Endpoint, port => Port,
 			opts => Opts, error => Reason}),
    {stop, Reason, maps:remove(ConnPid, Data)};
+up({call, From}, get_state, Data) ->
+   {keep_state_and_data, {reply, From, Data}};
 up(info, {'EXIT', ConnPid, Reason}, #{pid := ConnPid} = Data) ->
    {stop, Reason, maps:remove(ConnPid, Data)}.
 
