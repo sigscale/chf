@@ -92,10 +92,10 @@ init_per_suite2(Config) ->
 	Name = chf_ct_lib:rand_dn(),
 	Host = ct:get_config({nrf, host}),
 	Port = rand:uniform(64511) + 1024,
-	Path = ct:get_config({nrf, path}),
-	PathMatch1 = [Path],
-	PathMatch2 = [Path, <<"/:RatingDataRef/update">>],
-	PathMatch3 = [Path, <<"/:RatingDataRef/release">>],
+	BasePath = ct:get_config({nrf, path}),
+	PathMatch1 = BasePath,
+	PathMatch2 = [BasePath, $/, <<":RatingDataRef">>, $/, <<"update">>],
+	PathMatch3 = [BasePath, $/, <<":RatingDataRef">>, $/, <<"release">>],
 	Paths = [PathMatch1, PathMatch2, PathMatch3],
 	State = #{rf => Rf},
 	PathList = [{P, chf_nrf_handler, State} || P <- Paths],
@@ -117,7 +117,7 @@ init_per_suite2(Config) ->
 	case cowboy:StartMod(Name, TransportOpts, ProtocolOpts) of
 		{ok, Listener} ->
 			Config1 = [{nrf_host, Host}, {nrf_port, Port},
-					{nrf_path, Path}, {nrf_name, Name},
+					{nrf_path, BasePath}, {nrf_name, Name},
 					{nrf_pid, Listener} | Config],
 			init_per_suite3(Config1);
 		{error, Reason} ->

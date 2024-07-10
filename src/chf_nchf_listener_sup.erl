@@ -31,8 +31,6 @@
 
 -include_lib("kernel/include/logger.hrl").
 
--define(CHARGINGDATA, <<"/nchf-convergedcharging/v3/chargingdata/">>).
-
 -type state() :: #{name := Name :: ranch:ref(), pid := Listener :: pid()}.
 
 %%----------------------------------------------------------------------
@@ -111,10 +109,13 @@ start_nchf(Name, Transport, TransportOpts) ->
 start_nchf(Name, Transport, TransportOpts, ProtocolOpts)
 		when ((Transport == tcp) orelse (Transport == tls)),
 		is_list(TransportOpts), is_map(ProtocolOpts) ->
-	BasePath = ?CHARGINGDATA,
-	PathMatch1 = [BasePath],
-	PathMatch2 = [BasePath, <<":ChargingDataRef/update">>],
-	PathMatch3 = [BasePath, <<":ChargingDataRef/release">>],
+	ApiName = <<"nchf-convergedcharging">>,
+	ResourceName = <<"chargingdata">>,
+	CollectionPath = [$/, ApiName, $/, <<":version">>, $/, ResourceName],
+	ItemPath = [CollectionPath, $/, <<":ChargingDataRef">>],
+	PathMatch1 = CollectionPath,
+	PathMatch2 = [ItemPath, $/, <<"update">>],
+	PathMatch3 = [ItemPath, $/, <<"release">>],
 	Paths = [PathMatch1, PathMatch2, PathMatch3],
 	PathList = [{P, chf_nchf_handler, #{}} || P <- Paths],
 	HostMatch = '_',

@@ -37,12 +37,10 @@
 % other callbacks
 -export([from_json/2]).
 
--define(CHARGINGDATA, <<"/nchf-convergedcharging/v3/chargingdata">>).
--define(RATINGDATA, <<"/nrf-rating/v1/ratingdata">>).
-
 -type state() :: #{operation => create | update | release,
 		conn_pid => pid(),
 		stream_ref => gun:stream_ref(),
+		version => binary(),
 		chargingdataref => binary(),
 		chargingdata => map(),
 		ratingdata => binary()}.
@@ -118,18 +116,21 @@ content_types_accepted(Req, State) ->
 		Result :: {Exists, Req, State},
 		Exists :: boolean().
 %% @doc Return whether the resource exists or not.
-resource_exists(#{bindings := #{'ChargingDataRef' := ChargingDataRef}} = Req,
-		State) ->
+resource_exists(#{bindings := #{version := ApiVersion,
+		'ChargingDataRef' := ChargingDataRef}} = Req, State) ->
 	case ets:lookup(chf_dataref, ChargingDataRef) of
 		[{_, ConnPid, RatingDataRef}] ->
-			{true, Req, State#{conn_pid => ConnPid,
+			State1 = State#{conn_pid => ConnPid,
+					version => ApiVersion,
 					chargingdataref => ChargingDataRef,
-					ratingdataref => RatingDataRef}};
+					ratingdataref => RatingDataRef},
+			{true, Req, State1};
 		[] ->
 			{false, Req, State}
 	end;
-resource_exists(Req, State) ->
-	{true, Req, State}.
+resource_exists(#{bindings := #{version := ApiVersion}} = Req, State) ->
+	State1 = State#{version => ApiVersion},
+	{true, Req, State1}.
 
 -spec allow_missing_post(Req, State) -> Result
 	when
@@ -165,8 +166,11 @@ from_json(#{bindings := #{'ChargingDataRef' := ChargingDataRef},
 	RatingData = zj:binary_encode(to_ratingdata(ChargingData)),
 	Headers = [{<<"content-type">>, <<"application/json">>},
 			{<<"accept">>, <<"application/json">>}],
-	NrfPath = iolist_to_binary([?RATINGDATA, $/, RatingDataRef,
-			$/, atom_to_binary(Operation)]),
+	ApiName = <<"nrf-rating">>,
+	ApiVersion = <<"v1">>,
+	Resource = <<"ratingdata">>,
+	NrfPath= iolist_to_binary([$/, ApiName, $/, ApiVersion, $/, Resource,
+			$/, RatingDataRef, $/, atom_to_binary(Operation)]),
 	StreamRef = gun:post(ConnPid, NrfPath, Headers, RatingData),
 	State1 = State#{operation => Operation, stream_ref => StreamRef},
 	{{switch_handler, cowboy_loop}, Req1, State1};
@@ -176,8 +180,12 @@ from_json(Req, State) ->
 	RatingData = zj:binary_encode(to_ratingdata(ChargingData)),
 	RequestHeaders = [{<<"content-type">>, <<"application/json">>},
 			{<<"accept">>, <<"application/json">>}],
+	ApiName = <<"nrf-rating">>,
+	ApiVersion = <<"v1">>,
+	Resource = <<"ratingdata">>,
+	NrfPath = iolist_to_binary([$/, ApiName, $/, ApiVersion, $/, Resource]),
 	ConnPid = nrf(),
-	StreamRef = gun:post(ConnPid, ?RATINGDATA, RequestHeaders, RatingData),
+	StreamRef = gun:post(ConnPid, NrfPath, RequestHeaders, RatingData),
 	State1 = State#{operation => create,
 			conn_pid => ConnPid, stream_ref => StreamRef},
 	{{switch_handler, cowboy_loop}, Req1, State1}.
@@ -224,11 +232,15 @@ info({gun_data, ConnPid, StreamRef, nofin, Data} = _Info, Req,
 	{ok, Req, State1};
 info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
 		#{operation := create, conn_pid := ConnPid, stream_ref := StreamRef,
-		ratingdata := Data1, chargingdataref := ChargingDataRef} = State) ->
+		ratingdata := Data1, version := ApiVersion,
+		chargingdataref := ChargingDataRef} = State) ->
 	{ok, RatingData} = zj:binary_decode(lists:reverse([Data | Data1])),
 	ChargingData = from_ratingdata(RatingData),
 	Body = zj:binary_encode(ChargingData),
-	Location = [?CHARGINGDATA, $/, ChargingDataRef],
+	ApiName = <<"nchf-convergedcharging">>,
+	Resource = <<"chargingdata">>,
+	CollectionPath = [$/, ApiName, $/, ApiVersion, $/, Resource],
+	Location = [CollectionPath, $/, ChargingDataRef],
 	Headers = #{<<"location">> => Location},
 	Req1 = cowboy_req:reply(201, Headers, Body, Req),
 	{stop, Req1, State};
@@ -243,11 +255,14 @@ info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
 	{stop, Req1, State};
 info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
 		#{operation := create, conn_pid := ConnPid, stream_ref := StreamRef,
-		chargingdataref := ChargingDataRef} = State) ->
+		version := ApiVersion, chargingdataref := ChargingDataRef} = State) ->
 	{ok, RatingData} = zj:binary_decode(Data),
 	ChargingData = from_ratingdata(RatingData),
 	Body = zj:binary_encode(ChargingData),
-	Location = [?CHARGINGDATA, $/, ChargingDataRef],
+	ApiName = <<"nchf-convergedcharging">>,
+	Resource = <<"chargingdata">>,
+	CollectionPath = [$/, ApiName, $/, ApiVersion, $/, Resource],
+	Location = [CollectionPath, $/, ChargingDataRef],
 	Headers = #{<<"location">> => Location},
 	Req1 = cowboy_req:reply(201, Headers, Body, Req),
 	{stop, Req1, State};
