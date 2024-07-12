@@ -313,7 +313,7 @@ to_ratingdata(ChargingData)
 				Acc
 	end,
    CHF = #{<<"nodeFunctionality">> => <<"CHF">>},
-	AccIn = #{<<"invocationTimeStamp">> => chf_rest:now(),
+	AccIn = #{<<"invocationTimeStamp">> => list_to_binary(chf_rest:now()),
 			<<"nfConsumerIdentification">> => CHF},
 	maps:fold(F, AccIn, ChargingData).
 
@@ -392,7 +392,7 @@ from_ratingdata(RatingData)
 			(_, _, Acc) ->
 				Acc
 	end,
-	AccIn = #{<<"invocationTimeStamp">> => chf_rest:now()},
+	AccIn = #{<<"invocationTimeStamp">> => list_to_binary(chf_rest:now()),
 	maps:fold(F, AccIn, RatingData).
 
 %% @hidden
