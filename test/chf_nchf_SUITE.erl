@@ -30,7 +30,8 @@
 		unknown_dataref/0, unknown_dataref/1,
 		create_scur/0, create_scur/1,
 		update_scur/0, update_scur/1,
-		release_scur/0, release_scur/1]).
+		release_scur/0, release_scur/1,
+		bad_request/0, bad_request/1]).
 
 -include_lib("common_test/include/ct.hrl").
 
@@ -184,7 +185,7 @@ sequences() ->
 %% Returns a list of all test cases in this test suite.
 %%
 all() ->
-	[invalid_path, unknown_dataref, create_scur, update_scur, release_scur].
+	[invalid_path, unknown_dataref, create_scur, update_scur, release_scur, bad_request].
 
 %%---------------------------------------------------------------------
 %%  Test cases
@@ -327,6 +328,26 @@ release_scur(Config) ->
 	<<"application/json">> = ContentType2,
 	{ok, ResponseBody} = gun:await_body(ConnPid, StreamRef3),
 	{ok, #{}} = zj:decode(ResponseBody).
+
+bad_request() ->
+	[{userdata, [{doc, "Nchf request with missing mandatory attribute."}]}].
+
+bad_request(Config) ->
+	IMSI = "001001" ++ chf_ct_lib:rand_dn(9),
+	RG = rand:uniform(99) + 100,
+	ConnPid = proplists:get_value(conn_pid, Config),
+	Path = proplists:get_value(nchf_path, Config),
+	ContentType =  {<<"content-type">>, <<"application/json">>},
+	Accept = {<<"accept">>, <<"application/json">>},
+	RequestHeaders =  [ContentType, Accept],
+	MultipleUnitUsage = #{"ratingGroup" => RG, "requestedUnit" => #{}},
+	ChargingDataRequest = #{"invocationTimeStamp" => chf_rest:now(),
+			"subscriberIdentifier" => "imsi-" ++ IMSI,
+			"serviceSpecificationInfo" => "32291@3gpp.org",
+			"multipleUnitUsage" => [MultipleUnitUsage]},
+	RequestBody = zj:encode(ChargingDataRequest),
+	StreamRef = gun:post(ConnPid, Path, RequestHeaders, RequestBody),
+	{response, fin, 400, _ResponseHeaders} = gun:await(ConnPid, StreamRef).
 
 %%---------------------------------------------------------------------
 %%  Internal functions
