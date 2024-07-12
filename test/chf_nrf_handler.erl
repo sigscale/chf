@@ -145,16 +145,16 @@ from_json(#{bindings := #{'RatingDataRef' := RatingDataRef},
 		path := Path} = Req, #{rf := Rf} = State) ->
 	Operation = hd(lists:reverse(binary:split(Path, <<$/>>, [global]))),
 	{ok, RequestBody, Req1} = read_body(Req, []),
-	{ok, RatingData1} = zj:binary_decode(RequestBody),
-	Subscriber = get_subscriber(RatingData1),
-	SN = maps:get(<<"invocationSequenceNumber">>, RatingData1),
-	SR1 = maps:get(<<"serviceRating">>, RatingData1),
 	try
+		{ok, RatingData1} = zj:binary_decode(RequestBody),
+		SN = maps:get(<<"invocationSequenceNumber">>, RatingData1),
+		Subscriber = get_subscriber(RatingData1),
+		SR1 = maps:get(<<"serviceRating">>, RatingData1),
 		DebitAmount = get_debit(SR1),
 		SR2 = case chf_rf_server:debit(Rf, Subscriber, DebitAmount) of
 			{ok, _} ->
 				set_debit(SR1);
-      	{error, Reason} ->
+			{error, Reason} ->
 				throw(Reason)
 		end,
 		case Operation of
@@ -163,7 +163,7 @@ from_json(#{bindings := #{'RatingDataRef' := RatingDataRef},
 				case chf_rf_server:reserve(Rf, Subscriber, ReserveAmount) of
 					{ok, _} ->
 						set_reserve(SR2);
-      			{error, Reason1} ->
+					{error, Reason1} ->
 						throw(Reason1)
 				end;
 			<<"release">> ->
@@ -173,7 +173,7 @@ from_json(#{bindings := #{'RatingDataRef' := RatingDataRef},
 	of
 		SR3 ->
 			RatingData2 = #{<<"invocationSequenceNumber">> => SN,
-					<<"invocationTimeStamp">> => chf_rest:now(),
+					<<"invocationTimeStamp">> => list_to_binary(chf_rest:now()),
 					<<"serviceRating">> => SR3},
 			ResponseBody = zj:binary_encode(RatingData2),
 			Req2 = cowboy_req:reply(200, #{}, ResponseBody, Req1),
@@ -183,32 +183,53 @@ from_json(#{bindings := #{'RatingDataRef' := RatingDataRef},
 			Req2 = cowboy_req:reply(403, #{}, Req1),
 			{stop, Req2, State};
 		not_found ->
-			Req2 = cowboy_req:reply(404, #{}, Req1),
+			Headers = #{<<"content-type">> => <<"application/problem+json">>},
+			Body = problem_details(404),
+			Req2 = cowboy_req:reply(404, Headers, Body, Req1),
+			{stop, Req2, State};
+		_:_ ->
+			Headers = #{<<"content-type">> => <<"application/problem+json">>},
+			Body = problem_details(400),
+			Req2 = cowboy_req:reply(400, Headers, Body, Req1),
 			{stop, Req2, State}
 	end;
 from_json(Req, #{rf := Rf} = State) ->
 	{ok, RequestBody, Req1} = read_body(Req, []),
-	{ok, RatingData1} = zj:binary_decode(RequestBody),
-	Subscriber = get_subscriber(RatingData1),
-	SN = maps:get(<<"invocationSequenceNumber">>, RatingData1),
-	SR1 = maps:get(<<"serviceRating">>, RatingData1),
-	ReserveAmount = get_reserve(SR1),
-	case chf_rf_server:reserve(Rf, Subscriber, ReserveAmount) of
-		{ok, {_Balance, ReserveAmount}} ->
+	try
+		{ok, RatingData1} = zj:binary_decode(RequestBody),
+		Subscriber = get_subscriber(RatingData1),
+		SN = maps:get(<<"invocationSequenceNumber">>, RatingData1),
+		SR1 = maps:get(<<"serviceRating">>, RatingData1),
+		ReserveAmount = get_reserve(SR1),
+		case chf_rf_server:reserve(Rf, Subscriber, ReserveAmount) of
+			{ok, {_Balance, ReserveAmount}} ->
+				set_reserve(SR1);
+			{error, Reason} ->
+				throw(Reason)
+		end
+	of
+		SR2 ->
 			RatingDataRef = chf_rest:id(),
 			ets:insert(rf_dataref, {RatingDataRef}),
-			SR2 = set_reserve(SR1),
 			RatingData2 = #{<<"invocationSequenceNumber">> => SN,
-					<<"invocationTimeStamp">> => chf_rest:now(),
+					<<"invocationTimeStamp">> => list_to_binary(chf_rest:now()),
 					<<"serviceRating">> => SR2},
 			ResponseBody = zj:binary_encode(RatingData2),
 			Req2 = cowboy_req:set_resp_body(ResponseBody, Req1),
-			{{created, [?RATINGDATA, $/, RatingDataRef]}, Req2, State};
-      {error, out_of_credit} ->
+			{{created, [?RATINGDATA, $/, RatingDataRef]}, Req2, State}
+	catch
+		out_of_credit ->
 			Req2 = cowboy_req:reply(403, #{}, Req1),
 			{stop, Req2, State};
-		{error, not_found} ->
-			Req2 = cowboy_req:reply(404, #{}, Req1),
+		not_found ->
+			Headers = #{<<"content-type">> => <<"application/problem+json">>},
+			Body = problem_details(404),
+			Req2 = cowboy_req:reply(404, Headers, Body, Req1),
+			{stop, Req2, State};
+		_:_ ->
+			Headers = #{<<"content-type">> => <<"application/problem+json">>},
+			Body = problem_details(400),
+			Req2 = cowboy_req:reply(400, Headers, Body, Req1),
 			{stop, Req2, State}
 	end.
 
@@ -300,4 +321,20 @@ set_debit([H | T], Acc) ->
 	set_debit(T, [H | Acc]);
 set_debit([], Acc) ->
 	lists:reverse(Acc).
+
+%% @hidden
+problem_details(400) ->
+	[${, $", <<"type">>, $", $:, $",
+			<<"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1">>,
+			$", $,, $", <<"title">>, $", $:, $", <<"Bad Request">>, $", $,,
+			$", <<"detail">>, $", $:, $", <<"The server cannot or will not"
+			" process the request due to something that is perceived to be"
+			" a client error.">>, $", $,, $", <<"status">>, $", $:, <<"400">>,
+			$}];
+problem_details(404) ->
+	[${, $", <<"type">>, $", $:, $",
+			<<"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4">>,
+			$", $,, $", <<"title">>, $", $:, $", <<"Not Found">>, $", $,,
+			$", <<"detail">>, $", $:, $", <<"No resource exists at the path"
+			" provided.">>, $", $,, $", <<"status">>, $", $:, <<"404">>, $}].
 
