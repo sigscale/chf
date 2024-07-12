@@ -43,7 +43,8 @@
 		version => binary(),
 		chargingdataref => binary(),
 		chargingdata => map(),
-		ratingdata => binary()}.
+		data => binary(),
+		status => 100..599}.
 
 %%----------------------------------------------------------------------
 %%  The chf_nchf_handler cowboy_rest callbacks
@@ -203,7 +204,8 @@ from_json(Req, State) ->
 info({gun_response, ConnPid, StreamRef, fin, Status, _Headers} = _Info,
 		Req, #{conn_pid := ConnPid, stream_ref := StreamRef} = State) ->
 	Req1 = cowboy_req:reply(Status, #{}, Req),
-	{stop, Req1, State};
+	State1 = State#{status => Status},
+	{stop, Req1, State1};
 info({gun_response, ConnPid, StreamRef, nofin, 201, Headers} = _Info,
 		Req, #{operation := create, conn_pid := ConnPid,
 		stream_ref := StreamRef} = State) ->
@@ -213,26 +215,28 @@ info({gun_response, ConnPid, StreamRef, nofin, 201, Headers} = _Info,
 			ChargingDataRef = chf_rest:id(),
 			ets:insert(chf_dataref, {ChargingDataRef, ConnPid, RatingDataRef}),
 			State1 = State#{ratingdataref => RatingDataRef,
-					chargingdataref => ChargingDataRef},
+					chargingdataref => ChargingDataRef, status => 201},
 			{ok, Req, State1};
 		false ->
-			{ok, Req, State}
+			State1 = State#{status => 201},
+			{ok, Req, State1}
 	end;
-info({gun_response, ConnPid, StreamRef, nofin, _Status, _Headers} = _Info,
+info({gun_response, ConnPid, StreamRef, nofin, Status, _Headers} = _Info,
 		Req, #{conn_pid := ConnPid, stream_ref := StreamRef} = State) ->
-	{ok, Req, State};
+	State1 = State#{status => Status},
+	{ok, Req, State1};
 info({gun_data, ConnPid, StreamRef, nofin, Data} = _Info, Req,
 		#{conn_pid := ConnPid, stream_ref := StreamRef,
-		ratingdata := Data1} = State) ->
-	State1 = State#{ratingdata => [Data | Data1]},
+		data := Data1} = State) ->
+	State1 = State#{data => [Data | Data1]},
 	{ok, Req, State1};
 info({gun_data, ConnPid, StreamRef, nofin, Data} = _Info, Req,
 		#{conn_pid := ConnPid, stream_ref := StreamRef } = State) ->
-	State1 = State#{ratingdata => Data},
+	State1 = State#{data => Data},
 	{ok, Req, State1};
 info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
 		#{operation := create, conn_pid := ConnPid, stream_ref := StreamRef,
-		ratingdata := Data1, version := ApiVersion,
+		data := Data1, version := ApiVersion, status := 201,
 		chargingdataref := ChargingDataRef} = State) ->
 	{ok, RatingData} = zj:binary_decode(lists:reverse([Data | Data1])),
 	ChargingData = from_ratingdata(RatingData),
@@ -241,21 +245,14 @@ info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
 	Resource = <<"chargingdata">>,
 	CollectionPath = [$/, ApiName, $/, ApiVersion, $/, Resource],
 	Location = [CollectionPath, $/, ChargingDataRef],
-	Headers = #{<<"location">> => Location},
+	Headers = #{<<"content-type">> => <<"application/json">>,
+			<<"location">> => Location},
 	Req1 = cowboy_req:reply(201, Headers, Body, Req),
 	{stop, Req1, State};
 info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
-		#{conn_pid := ConnPid, stream_ref := StreamRef,
-		ratingdata := Data1} = State) ->
-	{ok, RatingData} = zj:binary_decode(lists:reverse([Data | Data1])),
-	ChargingData = from_ratingdata(RatingData),
-	Body = zj:binary_encode(ChargingData),
-	Headers = #{},
-	Req1 = cowboy_req:reply(200, Headers, Body, Req),
-	{stop, Req1, State};
-info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
 		#{operation := create, conn_pid := ConnPid, stream_ref := StreamRef,
-		version := ApiVersion, chargingdataref := ChargingDataRef} = State) ->
+		version := ApiVersion, status := 201,
+		chargingdataref := ChargingDataRef} = State) ->
 	{ok, RatingData} = zj:binary_decode(Data),
 	ChargingData = from_ratingdata(RatingData),
 	Body = zj:binary_encode(ChargingData),
@@ -263,16 +260,46 @@ info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
 	Resource = <<"chargingdata">>,
 	CollectionPath = [$/, ApiName, $/, ApiVersion, $/, Resource],
 	Location = [CollectionPath, $/, ChargingDataRef],
-	Headers = #{<<"location">> => Location},
+	Headers = #{<<"content-type">> => <<"application/json">>,
+			<<"location">> => Location},
 	Req1 = cowboy_req:reply(201, Headers, Body, Req),
 	{stop, Req1, State};
 info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
-		#{conn_pid := ConnPid, stream_ref := StreamRef} = State) ->
+		#{conn_pid := ConnPid, stream_ref := StreamRef,
+		data := Data1, status := 200} = State) ->
+	{ok, RatingData} = zj:binary_decode(lists:reverse([Data | Data1])),
+	ChargingData = from_ratingdata(RatingData),
+	Body = zj:binary_encode(ChargingData),
+	Headers = #{<<"content-type">> => <<"application/json">>},
+	Req1 = cowboy_req:reply(200, Headers, Body, Req),
+	{stop, Req1, State};
+info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
+		#{conn_pid := ConnPid, stream_ref := StreamRef,
+		status := 200} = State) ->
 	{ok, RatingData} = zj:binary_decode(Data),
 	ChargingData = from_ratingdata(RatingData),
 	Body = zj:binary_encode(ChargingData),
-	Headers = #{},
+	Headers = #{<<"content-type">> => <<"application/json">>},
 	Req1 = cowboy_req:reply(200, Headers, Body, Req),
+	{stop, Req1, State};
+info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
+		#{conn_pid := ConnPid, stream_ref := StreamRef,
+		status := 400} = State) ->
+	Req1 = cowboy_req:reply(400, #{}, Req),
+	{stop, Req1, State};
+info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
+		#{conn_pid := ConnPid, stream_ref := StreamRef,
+		status := 403} = State) ->
+	Req1 = cowboy_req:reply(403, #{}, Req),
+	{stop, Req1, State};
+info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
+		#{conn_pid := ConnPid, stream_ref := StreamRef,
+		status := 404} = State) ->
+	Req1 = cowboy_req:reply(404, #{}, Req),
+	{stop, Req1, State};
+info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
+		#{conn_pid := ConnPid, stream_ref := StreamRef} = State) ->
+	Req1 = cowboy_req:reply(500, #{}, Req),
 	{stop, Req1, State}.
 
 %%----------------------------------------------------------------------
@@ -313,7 +340,7 @@ to_ratingdata(ChargingData)
 				Acc
 	end,
    CHF = #{<<"nodeFunctionality">> => <<"CHF">>},
-	AccIn = #{<<"invocationTimeStamp">> => list_to_binary(chf_rest:now()),
+	AccIn = #{<<"invocationTimeStamp">> => list_to_binary(chf_rest:now())},
 			<<"nfConsumerIdentification">> => CHF},
 	maps:fold(F, AccIn, ChargingData).
 
@@ -392,7 +419,7 @@ from_ratingdata(RatingData)
 			(_, _, Acc) ->
 				Acc
 	end,
-	AccIn = #{<<"invocationTimeStamp">> => list_to_binary(chf_rest:now()),
+	AccIn = #{<<"invocationTimeStamp">> => list_to_binary(chf_rest:now())},
 	maps:fold(F, AccIn, RatingData).
 
 %% @hidden
