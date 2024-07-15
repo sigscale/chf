@@ -321,7 +321,7 @@ read_body(Req, Acc) ->
 to_ratingdata(ChargingData)
 		when is_map(ChargingData) ->
 	ServiceSpecId = maps:get(<<"serviceSpecificationInfo">>,
-			ChargingData, <<"32291@3gpp.org">>),
+			ChargingData, <<"32255@3gpp.org">>),
 	F = fun(<<"invocationSequenceNumber">> = Key, N, Acc)
 					when is_integer(N), N > 0 ->
 				Acc#{Key => N};

@@ -343,7 +343,7 @@ bad_request(Config) ->
 	MultipleUnitUsage = #{"ratingGroup" => RG, "requestedUnit" => #{}},
 	ChargingDataRequest = #{"invocationTimeStamp" => chf_rest:now(),
 			"subscriberIdentifier" => "imsi-" ++ IMSI,
-			"serviceSpecificationInfo" => "32291@3gpp.org",
+			"serviceSpecificationInfo" => "32255@3gpp.org",
 			"multipleUnitUsage" => [MultipleUnitUsage]},
 	RequestBody = zj:encode(ChargingDataRequest),
 	StreamRef = gun:post(ConnPid, Path, RequestHeaders, RequestBody),
@@ -360,7 +360,7 @@ create_request(IMSI, RG) ->
 			"invocationTimeStamp" => chf_rest:now(),
 			"nfConsumerIdentification" => NFIdentification,
 			"subscriberIdentifier" => "imsi-" ++ IMSI,
-			"serviceSpecificationInfo" => "32291@3gpp.org",
+			"serviceSpecificationInfo" => "32255@3gpp.org",
 			"multipleUnitUsage" => [MultipleUnitUsage]}.
 
 update_request(IMSI, SI, RG, Volume) ->
@@ -374,7 +374,7 @@ update_request(IMSI, SI, RG, Volume) ->
 	#{"invocationSequenceNumber" => 2,
 			"invocationTimeStamp" => chf_rest:now(),
 			"nfConsumerIdentification" => NFIdentification,
-			"serviceSpecificationInfo" => "32291@3gpp.org",
+			"serviceSpecificationInfo" => "32255@3gpp.org",
 			"subscriberIdentifier" => "imsi-" ++ IMSI,
 			"multipleUnitUsage" => [MultipleUnitUsage]}.
 
@@ -388,7 +388,7 @@ release_request(IMSI, SI, RG, Volume) ->
 	#{"invocationSequenceNumber" => 3,
 			"invocationTimeStamp" => chf_rest:now(),
 			"nfConsumerIdentification" => NFIdentification,
-			"serviceSpecificationInfo" => "32291@3gpp.org",
+			"serviceSpecificationInfo" => "32255@3gpp.org",
 			"subscriberIdentifier" => "imsi-" ++ IMSI,
 			"multipleUnitUsage" => [MultipleUnitUsage]}.
 
