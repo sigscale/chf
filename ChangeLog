@@ -1,3 +1,12 @@
+2024-07-16  Vance Shipley <vances@sigscale.org>
+
+	* default middle-tier specification selected by node functionality
+	* nchf accepts problem details from nrf
+	* test case for client error in request
+	* problem details body from test nrf handler
+	* handle other status codes, with and without body
+	* timestamp value must be binary
+
 2024-07-10  Vance Shipley <vances@sigscale.org>
 
 	* accept and reflect api version

@@ -1,3 +1,9 @@
+June 16, 2024
+-------------
+	- Charging specification default values when not explictly provided
+	- Time stamp encoding corrected
+	- Problem details in Nrf supported
+
 June 10, 2024
 -------------
 	- Nchf API version agnostic
