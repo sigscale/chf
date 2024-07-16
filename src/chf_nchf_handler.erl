@@ -20,6 +20,58 @@
 %%% 	callback module implements an Nchf interface endpoint
 %%% 	handler in the the {@link //chf. chf} application.
 %%%
+%%% 	An instance of this module is spawned for each HTTP(2) request
+%%% 	(`Stream'). This process handles an `Nchf_ConvergedCharging' request,
+%%% 	transcodes `ChargingDataRequest' to `RatingDataRequest', sends an
+%%% 	`Nrf_Rating' request, awaits and handles an `Nrf_Rating' response,
+%%% 	transcodes `RatingDataResponse' to `ChargingDataResponse' and sends
+%%% 	an `Nchf_ConvergedCharging' response.
+%%%
+%%% 	The `Nrf_Rating' request MUST include `serviceContextId' in each
+%%% 	`ServiceRating' object, the value of which MAY be found in the
+%%% 	`serviceSpecificationInformation' attribute of `ChargingDataRequest',
+%%% 	however if it is not present a default value is chosen based on the
+%%% 	value of `nfConsumerIdentification.nodeFunctionality' as described
+%%% 	below:
+%%% 	<table id="mt">
+%%% 		<tr id="mt">
+%%% 			<th id="mt">NodeFunctionality (Nchf)</th>
+%%% 			<th id="mt">ServiceContextId (Nrf)</th>
+%%% 		</tr>
+%%% 		<tr id="mt">
+%%% 			<td id="mt">SMF</td>
+%%% 			<td id="mt">32255@3gpp.org</td>
+%%% 		</tr>
+%%% 		<tr id="mt">
+%%% 			<td id="mt">V_SMF</td>
+%%% 			<td id="mt">32255@3gpp.org</td>
+%%% 		</tr>
+%%% 		<tr id="mt">
+%%% 			<td id="mt">AMF</td>
+%%% 			<td id="mt">32256@3gpp.org</td>
+%%% 		</tr>
+%%% 		<tr id="mt">
+%%% 			<td id="mt">SMSF</td>
+%%% 			<td id="mt">32274@3gpp.org</td>
+%%% 		</tr>
+%%% 		<tr id="mt">
+%%% 			<td id="mt">SGW</td>
+%%% 			<td id="mt">32251@3gpp.org</td>
+%%% 		</tr>
+%%% 		<tr id="mt">
+%%% 			<td id="mt">ePDG</td>
+%%% 			<td id="mt">32251@3gpp.org</td>
+%%% 		</tr>
+%%% 		<tr id="mt">
+%%% 			<td id="mt">SGSN</td>
+%%% 			<td id="mt">32251@3gpp.org</td>
+%%% 		</tr>
+%%% 		<tr id="mt">
+%%% 			<td id="mt">IMS_Node</td>
+%%% 			<td id="mt">32260@3gpp.org</td>
+%%% 		</tr>
+%%% 	</table>
+%%%
 -module(chf_nchf_handler).
 -copyright('Copyright (c) 2024 SigScale Global Inc.').
 -author('Vance Shipley <vances@sigscale.org>').
