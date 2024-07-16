@@ -318,10 +318,35 @@ read_body(Req, Acc) ->
 	end.
 
 %% @hidden
-to_ratingdata(ChargingData)
-		when is_map(ChargingData) ->
-	ServiceSpecId = maps:get(<<"serviceSpecificationInfo">>,
-			ChargingData, <<"32255@3gpp.org">>),
+to_ratingdata(#{<<"serviceSpecificationInfo">>
+		:= ServiceSpecId} = ChargingData) ->
+	to_ratingdata1(ServiceSpecId, ChargingData);
+to_ratingdata(#{<<"nfConsumerIdentification">>
+		:= #{<<"nodeFunctionality">> := <<"SMF">>}} = ChargingData) ->
+	to_ratingdata1(<<"32255@3gpp.org">>, ChargingData);
+to_ratingdata(#{<<"nfConsumerIdentification">>
+		:= #{<<"nodeFunctionality">> := <<"V_SMF">>}} = ChargingData) ->
+	to_ratingdata1(<<"32255@3gpp.org">>, ChargingData);
+to_ratingdata(#{<<"nfConsumerIdentification">>
+		:= #{<<"nodeFunctionality">> := <<"AMF">>}} = ChargingData) ->
+	to_ratingdata1(<<"32256@3gpp.org">>, ChargingData);
+to_ratingdata(#{<<"nfConsumerIdentification">>
+		:= #{<<"nodeFunctionality">> := <<"SMSF">>}} = ChargingData) ->
+	to_ratingdata1(<<"32274@3gpp.org">>, ChargingData);
+to_ratingdata(#{<<"nfConsumerIdentification">>
+		:= #{<<"nodeFunctionality">> := <<"SGW">>}} = ChargingData) ->
+	to_ratingdata1(<<"32251@3gpp.org">>, ChargingData);
+to_ratingdata(#{<<"nfConsumerIdentification">>
+		:= #{<<"nodeFunctionality">> := <<"ePDG">>}} = ChargingData) ->
+	to_ratingdata1(<<"32251@3gpp.org">>, ChargingData);
+to_ratingdata(#{<<"nfConsumerIdentification">>
+		:= #{<<"nodeFunctionality">> := <<"SGSN">>}} = ChargingData) ->
+	to_ratingdata1(<<"32251@3gpp.org">>, ChargingData);
+to_ratingdata(#{<<"nfConsumerIdentification">>
+		:= #{<<"nodeFunctionality">> := <<"IMS_Node">>}} = ChargingData) ->
+	to_ratingdata1(<<"32260@3gpp.org">>, ChargingData).
+%% @hidden
+to_ratingdata1(ServiceSpecId, ChargingData) ->
 	F = fun(<<"invocationSequenceNumber">> = Key, N, Acc)
 					when is_integer(N), N > 0 ->
 				Acc#{Key => N};
