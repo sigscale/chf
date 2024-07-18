@@ -160,6 +160,10 @@ up(info, {gun_tunnel_up, ConnPid, _StreamRef, Protocol},
 	Endpoint = endpoint(Host, Port),
 	?LOG_INFO(#{?MODULE => tunnel_up, Protocol => Endpoint}),
    {keep_state, Data#{protocol => Protocol}};
+up(info, {gun_down, ConnPid, Protocol, closed, KilledStreams},
+		#{pid := ConnPid, host := Host, port := Port} = Data) ->
+	Endpoint = endpoint(Host, Port),
+	{next_state, down, Data};
 up(info, {gun_down, ConnPid, Protocol, Reason, KilledStreams},
 		#{pid := ConnPid, host := Host, port := Port} = Data) ->
 	Endpoint = endpoint(Host, Port),
