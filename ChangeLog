@@ -1,3 +1,10 @@
+2024-07-28  Vance Shipley <vances@sigscale.org>
+
+	* suppress unused variable warnings
+	* refactor for readability
+	* do not log normal nrf close
+	* document default service context id mapping
+
 2024-07-16  Vance Shipley <vances@sigscale.org>
 
 	* default middle-tier specification selected by node functionality
