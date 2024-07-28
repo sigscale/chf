@@ -336,22 +336,22 @@ info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
 	Headers = #{<<"content-type">> => <<"application/json">>},
 	Req1 = cowboy_req:reply(200, Headers, Body, Req),
 	{stop, Req1, State};
-info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
+info({gun_data, ConnPid, StreamRef, fin, _Data} = _Info, Req,
 		#{conn_pid := ConnPid, stream_ref := StreamRef,
 		status := 400} = State) ->
 	Req1 = cowboy_req:reply(400, #{}, Req),
 	{stop, Req1, State};
-info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
+info({gun_data, ConnPid, StreamRef, fin, _Data} = _Info, Req,
 		#{conn_pid := ConnPid, stream_ref := StreamRef,
 		status := 403} = State) ->
 	Req1 = cowboy_req:reply(403, #{}, Req),
 	{stop, Req1, State};
-info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
+info({gun_data, ConnPid, StreamRef, fin, _Data} = _Info, Req,
 		#{conn_pid := ConnPid, stream_ref := StreamRef,
 		status := 404} = State) ->
 	Req1 = cowboy_req:reply(404, #{}, Req),
 	{stop, Req1, State};
-info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
+info({gun_data, ConnPid, StreamRef, fin, _Data} = _Info, Req,
 		#{conn_pid := ConnPid, stream_ref := StreamRef} = State) ->
 	Req1 = cowboy_req:reply(500, #{}, Req),
 	{stop, Req1, State}.
