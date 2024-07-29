@@ -400,7 +400,7 @@ to_ratingdata(#{<<"nfConsumerIdentification">>
 %% @hidden
 to_ratingdata1(ServiceSpecId, ChargingData) ->
 	F = fun(<<"invocationSequenceNumber">> = Key, N, Acc)
-					when is_integer(N), N > 0 ->
+					when is_integer(N), N >= 0 ->
 				Acc#{Key => N};
 			(<<"subscriberIdentifier">>, Value, Acc)
 					when is_binary(Value) ->
