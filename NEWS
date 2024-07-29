@@ -1,5 +1,7 @@
 July 29, 2024
 -------------
+	- Correct Service Rating mapping ion Nrf to MUI on Nchf
+	- Correct handling partial data response
 	- Accept deprecated zero value invocation sequence number on Nchf
 
 July 28, 2024
