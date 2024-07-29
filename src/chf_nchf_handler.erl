@@ -502,7 +502,7 @@ from_ratingdata(RatingData)
 	maps:fold(F, AccIn, RatingData).
 
 %% @hidden
-from_servicerating([#{<<"requestSubType">> := <<"RESERVE">>} = SR| T],
+from_servicerating([#{<<"grantedUnit">> := _} = SR| T],
 		Acc) ->
 	Fold = fun(<<"ratingGroup">> = Key, N, Facc)
 					when is_integer(N), N > 0 ->
@@ -514,7 +514,6 @@ from_servicerating([#{<<"requestSubType">> := <<"RESERVE">>} = SR| T],
 					when is_map(Value) ->
 				Facc#{Key => Value};
 			(_Key, _Value, Facc) ->
-
 				Facc
 	end,
 	MUI = maps:fold(Fold, #{}, SR),
