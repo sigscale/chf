@@ -1,19 +1,23 @@
-June 28, 2024
+July 29, 2024
+-------------
+	- Accept deprecated zero value invocation sequence number on Nchf
+
+July 28, 2024
 -------------
 	- Remove noise in Nrf connection logging
 	- Document default service context id mapping
 
-June 16, 2024
+July 16, 2024
 -------------
 	- Charging specification default values when not explictly provided
 	- Time stamp encoding corrected
 	- Problem details in Nrf supported
 
-June 10, 2024
+July 10, 2024
 -------------
 	- Nchf API version agnostic
 
-June 8, 2024
+July 8, 2024
 ------------
 	- Initial release of SigScale CHF
 		- support Nchf interface to 5GC
