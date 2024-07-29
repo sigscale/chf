@@ -95,7 +95,7 @@
 		version => binary(),
 		chargingdataref => binary(),
 		chargingdata => map(),
-		data => binary(),
+		data => [binary()],
 		status => 100..599}.
 
 %%----------------------------------------------------------------------
@@ -286,7 +286,7 @@ info({gun_data, ConnPid, StreamRef, nofin, Data} = _Info, Req,
 	{ok, Req, State1};
 info({gun_data, ConnPid, StreamRef, nofin, Data} = _Info, Req,
 		#{conn_pid := ConnPid, stream_ref := StreamRef } = State) ->
-	State1 = State#{data => Data},
+	State1 = State#{data => [Data]},
 	{ok, Req, State1};
 info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
 		#{operation := create, conn_pid := ConnPid, stream_ref := StreamRef,
