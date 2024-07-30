@@ -484,7 +484,7 @@ to_servicerating1([], _, Acc) ->
 from_ratingdata(RatingData)
 		when is_map(RatingData) ->
 	F = fun(<<"invocationSequenceNumber">> = Key, N, Acc)
-					when is_integer(N), N > 0 ->
+					when is_integer(N), N >= 0 ->
 				Acc#{Key => N};
 			(<<"serviceRating">>, Value, Acc)
 					when is_list(Value) ->
