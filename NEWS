@@ -1,6 +1,11 @@
+July 30, 2024
+-------------
+	- Zero values were being ignored in rating group
+	- Accept zero value invocation sequence number on Nrf
+
 July 29, 2024
 -------------
-	- Correct Service Rating mapping ion Nrf to MUI on Nchf
+	- Correct Service Rating mapping in Nrf to MUI on Nchf
 	- Correct handling partial data response
 	- Accept deprecated zero value invocation sequence number on Nchf
 

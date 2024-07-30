@@ -1,3 +1,8 @@
+2024-07-30 Vance Shipley <vances@sigscale.org>
+
+	* accept zero invocation sequence number
+	* do not ignore rating group 0
+
 2024-07-29  Vance Shipley <vances@sigscale.org>
 
 	* map service rating with granted units only
