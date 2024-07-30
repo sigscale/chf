@@ -426,8 +426,7 @@ to_ratingdata1(ServiceSpecId, ChargingData) ->
 %% @hidden
 to_servicerating(ServiceSpecId,
 		[#{<<"ratingGroup">> := RatingGroup} = MultipleUnitUsage | T], Acc)
-		when is_integer(RatingGroup), RatingGroup >= 0,
-		is_map(MultipleUnitUsage) ->
+		when is_integer(RatingGroup), is_map(MultipleUnitUsage) ->
 	ServiceRating = #{<<"serviceContextId">> => ServiceSpecId,
 			<<"ratingGroup">> => RatingGroup},
 	Acc1 = case maps:find(<<"requestedUnit">>, MultipleUnitUsage) of
@@ -505,7 +504,7 @@ from_ratingdata(RatingData)
 from_servicerating([#{<<"grantedUnit">> := _} = SR| T],
 		Acc) ->
 	Fold = fun(<<"ratingGroup">> = Key, N, Facc)
-					when is_integer(N), N > 0 ->
+					when is_integer(N) ->
 				Facc#{Key => N};
 			(<<"resultCode">> = Key, Value, Facc)
 					when is_binary(Value) ->
