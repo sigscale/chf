@@ -16,13 +16,22 @@
 ==Table of Contents==
 <ul>
 	<li><a href="#Intoduction">Introduction</a><br /></li>
+	<li><a href="#Features">Features</a><br /></li>
 	<li><a href="#Configuration">Configuration</a><br /></li>
 </ul>
 
 ==Introduction==
 This application provides a Converged Charging Function (CHF) within
 a decomposed Converged Charging System (CCS) in a 3GPP 5G Core
-network.
+network.  Prepaid charging is supported by the 3GPP Re interface to
+a Rating Function (RF) with colocated Account Balance Management
+Function (ABMF).  SigScale OCS produces the Nrf API for the Re interface
+which SigScale CHF consumes.
+
+<img id="interfaces" class="diagram"
+		src="interfaces.svg" alt="interfaces" />
+
+==Features==
 
 ==Configuration==
 System wide settings in the {@link //chf. chf} application may be

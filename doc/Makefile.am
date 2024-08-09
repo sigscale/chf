@@ -22,7 +22,8 @@ doc_DATA = overview.edoc $(modhtml) \
 		stylesheet.css \
 		edoc-info \
 		sigscale-logo.png \
-		supervision.svg
+		supervision.svg \
+		interfaces.svg
 
 overview.edoc: overview.edoc-in
 	sed -e 's!%VERSION%!$(VERSION)!' \
@@ -40,6 +41,7 @@ overview.edoc: overview.edoc-in
 	done
 	-cp -n $(top_srcdir)/doc/sigscale-logo.png .
 	-cp -n $(top_srcdir)/doc/supervision.svg .
+	-cp -n $(top_srcdir)/doc/interfaces.svg .
 
 CLEANFILES = $(doc_DATA) $(modhtml) erlang.png
 
