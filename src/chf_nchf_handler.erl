@@ -501,7 +501,7 @@ from_ratingdata(RatingData)
 	maps:fold(F, AccIn, RatingData).
 
 %% @hidden
-from_servicerating([#{<<"grantedUnit">> := _} = SR| T],
+from_servicerating([#{<<"grantedUnit">> := GU} = SR| T],
 		Acc) ->
 	Fold = fun(<<"ratingGroup">> = Key, N, Facc)
 					when is_integer(N) ->
@@ -512,6 +512,21 @@ from_servicerating([#{<<"grantedUnit">> := _} = SR| T],
 			(<<"grantedUnit">> = Key, Value, Facc)
 					when is_map(Value) ->
 				Facc#{Key => Value};
+			(<<"validUnits">>, Value, Facc) when is_integer(Value),
+					is_map_key(<<"time">>, GU) ->
+				Facc#{<<"timeQuotaThreshold">> => Value};
+			(<<"validUnits">>, Value, Facc) when is_integer(Value),
+					is_map_key(<<"totalVolume">>, GU) ->
+				Facc#{<<"volumeQuotaThreshold">> => Value};
+			(<<"validUnits">>, Value, Facc) when is_integer(Value),
+					is_map_key(<<"uplinkVolume">>, GU) ->
+				Facc#{<<"volumeQuotaThreshold">> => Value};
+			(<<"validUnits">>, Value, Facc) when is_integer(Value),
+					is_map_key(<<"downlinkVolume">>, GU) ->
+				Facc#{<<"volumeQuotaThreshold">> => Value};
+			(<<"validUnits">>, Value, Facc) when is_integer(Value),
+					is_map_key(<<"serviceSpecificUnit">>, GU) ->
+				Facc#{<<"unitQuotaThreshold">> => Value};
 			(_Key, _Value, Facc) ->
 				Facc
 	end,
