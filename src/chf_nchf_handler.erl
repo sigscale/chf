@@ -426,7 +426,7 @@ to_ratingdata1(ServiceSpecId, ChargingData) ->
 %% @hidden
 to_servicerating(ServiceSpecId,
 		[#{<<"ratingGroup">> := RatingGroup} = MultipleUnitUsage | T], Acc)
-		when is_integer(RatingGroup), is_map(MultipleUnitUsage) ->
+		when is_integer(RatingGroup) ->
 	ServiceRating = #{<<"serviceContextId">> => ServiceSpecId,
 			<<"ratingGroup">> => RatingGroup},
 	Acc1 = case maps:find(<<"requestedUnit">>, MultipleUnitUsage) of
@@ -468,8 +468,7 @@ to_servicerating1([UsedUnitContainer | T], ServiceRating, Acc)
 				Facc
 	end,
 	ConsumedUnit = maps:fold(F, #{}, UsedUnitContainer),
-	Acc1 = case maps:find(<<"serviceId">>,
-			UsedUnitContainer) of
+	Acc1 = case maps:find(<<"serviceId">>, UsedUnitContainer) of
 		{ok, SI} ->
 			[ServiceRating#{<<"consumedUnit">> => ConsumedUnit,
 					<<"serviceId">> => SI} | Acc];
@@ -478,7 +477,7 @@ to_servicerating1([UsedUnitContainer | T], ServiceRating, Acc)
 	end,
 	to_servicerating1(T, ServiceRating, Acc1);
 to_servicerating1([], _, Acc) ->
-	lists:reverse(Acc).
+	Acc.
 
 %% @hidden
 from_ratingdata(RatingData)
