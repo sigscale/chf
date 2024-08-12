@@ -1,5 +1,6 @@
 2024-08-12 Vance Shipley <vances@sigscale.org>
 
+	* correct guard to expect binary encoded string
 	* 5g data connectivity service information to nrf
 	* nrf api v1.1 with 5g data connectivity service specific information
 	* map upfid nchf -> nrf -> nchf
