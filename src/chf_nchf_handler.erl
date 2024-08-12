@@ -399,55 +399,65 @@ to_ratingdata(#{<<"nfConsumerIdentification">>
 	to_ratingdata1(<<"32260@3gpp.org">>, ChargingData).
 %% @hidden
 to_ratingdata1(ServiceSpecId, ChargingData) ->
-	F = fun(<<"invocationSequenceNumber">> = Key, N, Acc)
+	F = fun(<<"invocationSequenceNumber">> = Key, N, Facc)
 					when is_integer(N), N >= 0 ->
-				Acc#{Key => N};
-			(<<"subscriberIdentifier">>, Value, Acc)
+				Facc#{Key => N};
+			(<<"subscriberIdentifier">>, Value, Facc)
 					when is_binary(Value) ->
-				Acc#{<<"subscriptionId">> => [Value]};
-			(<<"oneTimeEvent">> = Key, Value, Acc)
+				Facc#{<<"subscriptionId">> => [Value]};
+			(<<"oneTimeEvent">> = Key, Value, Facc)
 					when is_boolean(Value) ->
-				Acc#{Key => Value};
-			(<<"oneTimeEventType">> = Key, Value, Acc)
+				Facc#{Key => Value};
+			(<<"oneTimeEventType">> = Key, Value, Facc)
 					when Value == <<"IEC">>; Value == <<"PEC">> ->
-				Acc#{Key => Value};
-			(<<"multipleUnitUsage">>, Value, Acc)
+				Facc#{Key => Value};
+			(<<"multipleUnitUsage">>, Value, Facc)
 					when is_list(Value) ->
 				ServiceRating = to_servicerating(ServiceSpecId, Value, []),
-				Acc#{<<"serviceRating">> => ServiceRating};
-			(_, _, Acc) ->
-				Acc
+				Facc#{<<"serviceRating">> => ServiceRating};
+			(_, _, Facc) ->
+				Facc
 	end,
    CHF = #{<<"nodeFunctionality">> => <<"CHF">>},
-	AccIn = #{<<"invocationTimeStamp">> => list_to_binary(chf_rest:now()),
+	RatingData = #{<<"invocationTimeStamp">> => list_to_binary(chf_rest:now()),
 			<<"nfConsumerIdentification">> => CHF},
-	maps:fold(F, AccIn, ChargingData).
+	maps:fold(F, RatingData, ChargingData).
 
 %% @hidden
 to_servicerating(ServiceSpecId,
 		[#{<<"ratingGroup">> := RatingGroup} = MultipleUnitUsage | T], Acc)
 		when is_integer(RatingGroup) ->
-	ServiceRating = #{<<"serviceContextId">> => ServiceSpecId,
-			<<"ratingGroup">> => RatingGroup},
+	F = fun(<<"ratingGroup">> = Key, Value, Facc)
+					when is_integer(Value) ->
+				Facc#{Key => Value};
+			(<<"uPFID">> = Key, Value, Facc)
+					when is_list(Value)->
+				Facc#{Key => Value};
+			(_, _, Facc) ->
+				Facc
+	end,
+	ServiceRating1 = #{<<"serviceContextId">> => ServiceSpecId},
+	ServiceRating2 = maps:fold(F, ServiceRating1, MultipleUnitUsage),
 	Acc1 = case maps:find(<<"requestedUnit">>, MultipleUnitUsage) of
-		{ok, RequestedUnit} ->
-			[ServiceRating#{<<"requestedUnit">> => RequestedUnit,
-			<<"requestSubType">> => <<"RESERVE">>} | Acc];
+		{ok, RequestedUnit} when is_map(RequestedUnit) ->
+			[ServiceRating2#{<<"requestedUnit">> => RequestedUnit,
+					<<"requestSubType">> => <<"RESERVE">>} | Acc];
 		error ->
 			Acc
 	end,
 	Acc2 = case maps:find(<<"usedUnitContainer">>, MultipleUnitUsage) of
-		{ok, UsedUnitContainer} ->
-			ServiceRating1 = ServiceRating#{<<"requestSubType">> => <<"DEBIT">>},
-			to_servicerating1(UsedUnitContainer, ServiceRating1, Acc1);
+		{ok, UsedUnitContainer} when is_list(UsedUnitContainer) ->
+			ServiceRating3 = ServiceRating2#{<<"requestSubType">> => <<"DEBIT">>},
+			to_consumedunit(UsedUnitContainer, ServiceRating3, Acc1);
 		error ->
 			Acc1
 	end,
 	to_servicerating(ServiceSpecId, T, Acc2);
 to_servicerating(_, [], Acc) ->
 	lists:reverse(Acc).
+
 %% @hidden
-to_servicerating1([UsedUnitContainer | T], ServiceRating, Acc)
+to_consumedunit([UsedUnitContainer | T], ServiceRating, Acc)
 		when is_map(UsedUnitContainer) ->
 	F = fun(<<"time">> = Key, N, Facc)
 					when is_integer(N), N > 0 ->
@@ -475,33 +485,32 @@ to_servicerating1([UsedUnitContainer | T], ServiceRating, Acc)
 		error ->
 			[ServiceRating#{<<"consumedUnit">> => ConsumedUnit} | Acc]
 	end,
-	to_servicerating1(T, ServiceRating, Acc1);
-to_servicerating1([], _, Acc) ->
+	to_consumedunit(T, ServiceRating, Acc1);
+to_consumedunit([], _, Acc) ->
 	Acc.
 
 %% @hidden
 from_ratingdata(RatingData)
 		when is_map(RatingData) ->
-	F = fun(<<"invocationSequenceNumber">> = Key, N, Acc)
+	F = fun(<<"invocationSequenceNumber">> = Key, N, Facc)
 					when is_integer(N), N >= 0 ->
-				Acc#{Key => N};
-			(<<"serviceRating">>, Value, Acc)
+				Facc#{Key => N};
+			(<<"serviceRating">>, Value, Facc)
 					when is_list(Value) ->
 				case from_servicerating(Value, []) of
 					[] ->
-						Acc;
+						Facc;
 					MUI ->
-						Acc#{<<"multipleUnitInformation">> => MUI}
+						Facc#{<<"multipleUnitInformation">> => MUI}
 				end;
-			(_, _, Acc) ->
-				Acc
+			(_, _, Facc) ->
+				Facc
 	end,
-	AccIn = #{<<"invocationTimeStamp">> => list_to_binary(chf_rest:now())},
-	maps:fold(F, AccIn, RatingData).
+	ChargingData = #{<<"invocationTimeStamp">> => list_to_binary(chf_rest:now())},
+	maps:fold(F, ChargingData, RatingData).
 
 %% @hidden
-from_servicerating([#{<<"grantedUnit">> := GU} = SR| T],
-		Acc) ->
+from_servicerating([#{<<"grantedUnit">> := GU} = SR| T], Acc) ->
 	Fold = fun(<<"ratingGroup">> = Key, N, Facc)
 					when is_integer(N) ->
 				Facc#{Key => N};
@@ -526,11 +535,14 @@ from_servicerating([#{<<"grantedUnit">> := GU} = SR| T],
 			(<<"validUnits">>, Value, Facc) when is_integer(Value),
 					is_map_key(<<"serviceSpecificUnit">>, GU) ->
 				Facc#{<<"unitQuotaThreshold">> => Value};
+			(<<"uPFID">> = Key, Value, Facc)
+					when is_list(Value) ->
+				Facc#{Key => Value};
 			(_Key, _Value, Facc) ->
 				Facc
 	end,
-	MUI = maps:fold(Fold, #{}, SR),
-	from_servicerating(T, [MUI | Acc]);
+	MultipleUnitInformation = maps:fold(Fold, #{}, SR),
+	from_servicerating(T, [MultipleUnitInformation | Acc]);
 from_servicerating([_ | T], Acc) ->
 	from_servicerating(T, Acc);
 from_servicerating([], Acc) ->
