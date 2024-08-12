@@ -432,7 +432,7 @@ to_servicerating(ServiceSpecId, ChargingData,
 					when is_integer(Value) ->
 				Facc#{Key => Value};
 			(<<"uPFID">> = Key, Value, Facc)
-					when is_list(Value)->
+					when is_binary(Value)->
 				Facc#{Key => Value};
 			(_, _, Facc) ->
 				Facc
@@ -545,7 +545,7 @@ from_servicerating([#{<<"grantedUnit">> := GU} = SR| T], Acc) ->
 					is_map_key(<<"serviceSpecificUnit">>, GU) ->
 				Facc#{<<"unitQuotaThreshold">> => Value};
 			(<<"uPFID">> = Key, Value, Facc)
-					when is_list(Value) ->
+					when is_binary(Value) ->
 				Facc#{Key => Value};
 			(_Key, _Value, Facc) ->
 				Facc
