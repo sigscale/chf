@@ -1,3 +1,13 @@
+2024-08-12 Vance Shipley <vances@sigscale.org>
+
+	* 5g data connectivity service information to nrf
+	* nrf api v1.1 with 5g data connectivity service specific information
+	* map upfid nchf -> nrf -> nchf
+	* removed unecessary guard and list reverse
+	* remove unused variable assignments
+	* diagram interfaces in edoc overview
+	* map quota thresholds from nrf to nchf
+
 2024-07-30 Vance Shipley <vances@sigscale.org>
 
 	* accept zero invocation sequence number
