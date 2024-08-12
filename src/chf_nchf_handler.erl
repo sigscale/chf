@@ -413,7 +413,8 @@ to_ratingdata1(ServiceSpecId, ChargingData) ->
 				Facc#{Key => Value};
 			(<<"multipleUnitUsage">>, Value, Facc)
 					when is_list(Value) ->
-				ServiceRating = to_servicerating(ServiceSpecId, Value, []),
+				ServiceRating = to_servicerating(ServiceSpecId,
+						ChargingData, Value, []),
 				Facc#{<<"serviceRating">> => ServiceRating};
 			(_, _, Facc) ->
 				Facc
@@ -424,7 +425,7 @@ to_ratingdata1(ServiceSpecId, ChargingData) ->
 	maps:fold(F, RatingData, ChargingData).
 
 %% @hidden
-to_servicerating(ServiceSpecId,
+to_servicerating(ServiceSpecId, ChargingData,
 		[#{<<"ratingGroup">> := RatingGroup} = MultipleUnitUsage | T], Acc)
 		when is_integer(RatingGroup) ->
 	F = fun(<<"ratingGroup">> = Key, Value, Facc)
@@ -436,7 +437,15 @@ to_servicerating(ServiceSpecId,
 			(_, _, Facc) ->
 				Facc
 	end,
-	ServiceRating1 = #{<<"serviceContextId">> => ServiceSpecId},
+	ServiceRating1 = case maps:find(<<"pDUSessionChargingInformation">>,
+			ChargingData) of
+		{ok, PDUSessionChargingInformation}
+				when is_map(PDUSessionChargingInformation) ->
+			#{<<"serviceContextId">> => ServiceSpecId,
+					<<"serviceInformation">> => PDUSessionChargingInformation};
+		error ->
+			#{<<"serviceContextId">> => ServiceSpecId}
+	end,
 	ServiceRating2 = maps:fold(F, ServiceRating1, MultipleUnitUsage),
 	Acc1 = case maps:find(<<"requestedUnit">>, MultipleUnitUsage) of
 		{ok, RequestedUnit} when is_map(RequestedUnit) ->
@@ -452,8 +461,8 @@ to_servicerating(ServiceSpecId,
 		error ->
 			Acc1
 	end,
-	to_servicerating(ServiceSpecId, T, Acc2);
-to_servicerating(_, [], Acc) ->
+	to_servicerating(ServiceSpecId, ChargingData, T, Acc2);
+to_servicerating(_, _, [], Acc) ->
 	lists:reverse(Acc).
 
 %% @hidden

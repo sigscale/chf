@@ -198,6 +198,7 @@ invalid_path(Config) ->
 	IMSI = "001001" ++ chf_ct_lib:rand_dn(9),
 	SI = rand:uniform(20),
 	RG = rand:uniform(99) + 100,
+	PDUSCI = pdusci(),
 	Volume = rand:uniform(1000000),
 	ConnPid = proplists:get_value(conn_pid, Config),
 	BasePath = proplists:get_value(nchf_path, Config),
@@ -206,7 +207,7 @@ invalid_path(Config) ->
 	ContentType =  {<<"content-type">>, <<"application/json">>},
 	Accept = {<<"accept">>, <<"application/json">>},
 	RequestHeaders =  [ContentType, Accept],
-	ChargingDataRequest = update_request(IMSI, SI, RG, Volume),
+	ChargingDataRequest = update_request(IMSI, SI, RG, PDUSCI, Volume),
 	RequestBody = zj:encode(ChargingDataRequest),
 	StreamRef = gun:post(ConnPid, Path, RequestHeaders, RequestBody),
 	{response, fin, 404, _ResponseHeaders} = gun:await(ConnPid, StreamRef).
@@ -218,6 +219,7 @@ unknown_dataref(Config) ->
 	IMSI = "001001" ++ chf_ct_lib:rand_dn(9),
 	SI = rand:uniform(20),
 	RG = rand:uniform(99) + 100,
+	PDUSCI = pdusci(),
 	Volume = rand:uniform(1000000),
 	ConnPid = proplists:get_value(conn_pid, Config),
 	BasePath = proplists:get_value(nchf_path, Config),
@@ -226,7 +228,7 @@ unknown_dataref(Config) ->
 	ContentType =  {<<"content-type">>, <<"application/json">>},
 	Accept = {<<"accept">>, <<"application/json">>},
 	RequestHeaders =  [ContentType, Accept],
-	ChargingDataRequest = update_request(IMSI, SI, RG, Volume),
+	ChargingDataRequest = update_request(IMSI, SI, RG, PDUSCI, Volume),
 	RequestBody = zj:encode(ChargingDataRequest),
 	StreamRef = gun:post(ConnPid, Path, RequestHeaders, RequestBody),
 	{response, fin, 404, _ResponseHeaders} = gun:await(ConnPid, StreamRef).
@@ -237,6 +239,7 @@ create_scur() ->
 create_scur(Config) ->
 	IMSI = "001001" ++ chf_ct_lib:rand_dn(9),
 	RG = rand:uniform(99) + 100,
+	PDUSCI = pdusci(),
 	UnitSize = 1000000,
 	Balance = rand:uniform(UnitSize) + UnitSize * 10,
 	Rf = proplists:get_value(ct_rf, Config),
@@ -246,7 +249,7 @@ create_scur(Config) ->
 	ContentType =  {<<"content-type">>, <<"application/json">>},
 	Accept = {<<"accept">>, <<"application/json">>},
 	RequestHeaders = [ContentType, Accept],
-	ChargingDataRequest = create_request(IMSI, RG),
+	ChargingDataRequest = create_request(IMSI, RG, PDUSCI),
 	RequestBody = zj:encode(ChargingDataRequest),
 	StreamRef = gun:post(ConnPid, Path, RequestHeaders, RequestBody),
 	{response, nofin, 201, ResponseHeaders} = gun:await(ConnPid, StreamRef),
@@ -264,6 +267,7 @@ update_scur(Config) ->
 	IMSI = "001001" ++ chf_ct_lib:rand_dn(9),
 	SI = rand:uniform(20),
 	RG = rand:uniform(99) + 100,
+	PDUSCI = pdusci(),
 	UnitSize = 1000000,
 	Balance = rand:uniform(UnitSize) + UnitSize * 10,
 	Rf = proplists:get_value(ct_rf, Config),
@@ -273,14 +277,14 @@ update_scur(Config) ->
 	ContentType1 =  {<<"content-type">>, <<"application/json">>},
 	Accept = {<<"accept">>, <<"application/json">>},
 	RequestHeaders = [ContentType1, Accept],
-	ChargingDataRequest1 = create_request(IMSI, RG),
+	ChargingDataRequest1 = create_request(IMSI, RG, PDUSCI),
 	RequestBody1 = zj:encode(ChargingDataRequest1),
 	StreamRef1 = gun:post(ConnPid, Path1, RequestHeaders, RequestBody1),
 	{response, nofin, 201, ResponseHeaders1} = gun:await(ConnPid, StreamRef1),
 	Location = proplists:get_value(<<"location">>, ResponseHeaders1),
 	Volume = rand:uniform(UnitSize) + UnitSize,
 	Path2 = [Location, $/, <<"update">>],
-	ChargingDataRequest2 = update_request(IMSI, SI, RG, Volume),
+	ChargingDataRequest2 = update_request(IMSI, SI, RG, PDUSCI, Volume),
 	RequestBody2 = zj:encode(ChargingDataRequest2),
 	StreamRef2 = gun:post(ConnPid, Path2, RequestHeaders, RequestBody2),
 	{response, nofin, 200, ResponseHeaders2} = gun:await(ConnPid, StreamRef2),
@@ -298,6 +302,7 @@ release_scur(Config) ->
 	IMSI = "001001" ++ chf_ct_lib:rand_dn(9),
 	SI = rand:uniform(20),
 	RG = rand:uniform(99) + 100,
+	PDUSCI = pdusci(),
 	UnitSize = 1000000,
 	Balance = rand:uniform(UnitSize) + UnitSize * 10,
 	Rf = proplists:get_value(ct_rf, Config),
@@ -307,20 +312,20 @@ release_scur(Config) ->
 	ContentType1 =  {<<"content-type">>, <<"application/json">>},
 	Accept = {<<"accept">>, <<"application/json">>},
 	RequestHeaders = [ContentType1, Accept],
-	ChargingDataRequest1 = create_request(IMSI, RG),
+	ChargingDataRequest1 = create_request(IMSI, RG, PDUSCI),
 	RequestBody1 = zj:encode(ChargingDataRequest1),
 	StreamRef1 = gun:post(ConnPid, Path1, RequestHeaders, RequestBody1),
 	{response, nofin, 201, ResponseHeaders1} = gun:await(ConnPid, StreamRef1),
 	Location = proplists:get_value(<<"location">>, ResponseHeaders1),
 	Volume1 = rand:uniform(UnitSize) + UnitSize,
 	Path2 = [Location, $/, <<"update">>],
-	ChargingDataRequest2 = update_request(IMSI, SI, RG, Volume1),
+	ChargingDataRequest2 = update_request(IMSI, SI, RG, PDUSCI, Volume1),
 	RequestBody2 = zj:encode(ChargingDataRequest2),
 	StreamRef2 = gun:post(ConnPid, Path2, RequestHeaders, RequestBody2),
 	{response, nofin, 200, _ResponseHeaders2} = gun:await(ConnPid, StreamRef2),
 	Path3 = [Location, $/, <<"release">>],
 	Volume2 = rand:uniform(UnitSize) + UnitSize,
-	ChargingDataRequest3 = release_request(IMSI, SI, RG, Volume2),
+	ChargingDataRequest3 = release_request(IMSI, SI, RG, PDUSCI, Volume2),
 	RequestBody3 = zj:encode(ChargingDataRequest3),
 	StreamRef3 = gun:post(ConnPid, Path3, RequestHeaders, RequestBody3),
 	{response, nofin, 200, ResponseHeaders3} = gun:await(ConnPid, StreamRef3),
@@ -353,7 +358,13 @@ bad_request(Config) ->
 %%  Internal functions
 %%---------------------------------------------------------------------
 
-create_request(IMSI, RG) ->
+pdusci() ->
+	#{"chargingId" => rand:uniform(4294967296) - 1,
+			"pduSessionInformation" => #{
+					"pduSessionID" => rand:uniform(256) - 1,
+					"dnnId" => chf_ct_lib:rand_name()}}.
+
+create_request(IMSI, RG, PDUSCI) ->
 	NFIdentification = #{"nodeFunctionality" => "SMF"},
 	MultipleUnitUsage = #{"ratingGroup" => RG,
 			"requestedUnit" => #{},
@@ -363,9 +374,10 @@ create_request(IMSI, RG) ->
 			"nfConsumerIdentification" => NFIdentification,
 			"subscriberIdentifier" => "imsi-" ++ IMSI,
 			"serviceSpecificationInfo" => "32255@3gpp.org",
-			"multipleUnitUsage" => [MultipleUnitUsage]}.
+			"multipleUnitUsage" => [MultipleUnitUsage],
+			"pDUSessionChargingInformation" => PDUSCI}.
 
-update_request(IMSI, SI, RG, Volume) ->
+update_request(IMSI, SI, RG, PDUSCI, Volume) ->
 	NFIdentification = #{"nodeFunctionality" => "SMF"},
 	UsedUnitContainer = #{"localSequenceNumber" => 1,
 			"serviceId" => SI,
@@ -379,9 +391,10 @@ update_request(IMSI, SI, RG, Volume) ->
 			"nfConsumerIdentification" => NFIdentification,
 			"serviceSpecificationInfo" => "32255@3gpp.org",
 			"subscriberIdentifier" => "imsi-" ++ IMSI,
-			"multipleUnitUsage" => [MultipleUnitUsage]}.
+			"multipleUnitUsage" => [MultipleUnitUsage],
+			"pDUSessionChargingInformation" => PDUSCI}.
 
-release_request(IMSI, SI, RG, Volume) ->
+release_request(IMSI, SI, RG, PDUSCI, Volume) ->
 	NFIdentification = #{"nodeFunctionality" => "SMF"},
 	UsedUnitContainer = #{"localSequenceNumber" => 1,
 			"serviceId" => SI,
@@ -394,7 +407,8 @@ release_request(IMSI, SI, RG, Volume) ->
 			"nfConsumerIdentification" => NFIdentification,
 			"serviceSpecificationInfo" => "32255@3gpp.org",
 			"subscriberIdentifier" => "imsi-" ++ IMSI,
-			"multipleUnitUsage" => [MultipleUnitUsage]}.
+			"multipleUnitUsage" => [MultipleUnitUsage],
+			"pDUSessionChargingInformation" => PDUSCI}.
 
 is_prefix(Prefix, Path)
 		when is_list(Prefix) ->
