@@ -336,24 +336,24 @@ info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
 	Headers = #{<<"content-type">> => <<"application/json">>},
 	Req1 = cowboy_req:reply(200, Headers, Body, Req),
 	{stop, Req1, State};
-info({gun_data, ConnPid, StreamRef, fin, _Data} = _Info, Req,
+info({gun_data, ConnPid, StreamRef, fin, Data} = _Info, Req,
 		#{conn_pid := ConnPid, stream_ref := StreamRef,
-		status := 400} = State) ->
-	Req1 = cowboy_req:reply(400, #{}, Req),
-	{stop, Req1, State};
-info({gun_data, ConnPid, StreamRef, fin, _Data} = _Info, Req,
-		#{conn_pid := ConnPid, stream_ref := StreamRef,
-		status := 403} = State) ->
-	Req1 = cowboy_req:reply(403, #{}, Req),
-	{stop, Req1, State};
-info({gun_data, ConnPid, StreamRef, fin, _Data} = _Info, Req,
-		#{conn_pid := ConnPid, stream_ref := StreamRef,
-		status := 404} = State) ->
-	Req1 = cowboy_req:reply(404, #{}, Req),
+		status := Status} = State)
+		when Status == 400; Status == 403; Status == 404 ->
+	{ok, RatingProblem} = zj:binary_decode(Data),
+	ChargingProblem = from_problemdetails(Status, RatingProblem),
+	Body = zj:binary_encode(ChargingProblem),
+	Headers = #{<<"content-type">> => <<"application/problem+json">>},
+	Req1 = cowboy_req:reply(Status, Headers, Body, Req),
 	{stop, Req1, State};
 info({gun_data, ConnPid, StreamRef, fin, _Data} = _Info, Req,
 		#{conn_pid := ConnPid, stream_ref := StreamRef} = State) ->
-	Req1 = cowboy_req:reply(500, #{}, Req),
+	ChargingProblem = #{<<"title">> => <<"Error">>,
+			<<"detail">> => <<"An unexpected rating failure has occurred.">>,
+			<<"status">> => 500, <<"cause">> => <<"SYSTEM_FAILURE">>},
+	Body = zj:binary_encode(ChargingProblem),
+	Headers = #{<<"content-type">> => <<"application/problem+json">>},
+	Req1 = cowboy_req:reply(500, Headers, Body, Req),
 	{stop, Req1, State}.
 
 %%----------------------------------------------------------------------
@@ -556,6 +556,72 @@ from_servicerating([_ | T], Acc) ->
 	from_servicerating(T, Acc);
 from_servicerating([], Acc) ->
 	lists:reverse(Acc).
+
+%% @hidden
+from_problemdetails(400, #{<<"cause">> := <<"RATING_FAILED">>}) ->
+	#{<<"title">> => <<"Failed">>,
+			<<"detail">> => <<"The request failed due to incomplete or inconsistent information.">>,
+			<<"status">> => 400,
+			<<"cause">> => <<"CHARGING_FAILED">>};
+from_problemdetails(400, #{<<"cause">> := <<"CHARGING_FAILED">>}) ->
+	#{<<"title">> => <<"Failed">>,
+			<<"detail">> => <<"The request failed due to incomplete or inconsistent information.">>,
+			<<"status">> => 400,
+			<<"cause">> => <<"CHARGING_FAILED">>};
+from_problemdetails(400, #{<<"cause">> := <<"RE_AUTHORIZATION_FAILED">>}) ->
+	#{<<"title">> => <<"Failed">>,
+			<<"detail">> => <<"The request failed due to incomplete or inconsistent information.">>,
+			<<"status">> => 400,
+			<<"cause">> => <<"RE_AUTHORIZATION_FAILED">>};
+from_problemdetails(400, _RatingProblem) ->
+	#{<<"title">> => <<"Failed">>,
+			<<"detail">> => <<"The request failed due to incomplete or inconsistent information.">>,
+			<<"status">> => 400,
+			<<"cause">> => <<"CHARGING_FAILED">>};
+from_problemdetails(403, #{<<"cause">> := <<"CHARGING_NOT_APPLICABLE">>}) ->
+	#{<<"title">> => <<"Not required">>,
+			<<"detail">> => <<"It was determined that service may be provided to the subscriber without charging.">>,
+			<<"status">> => 403,
+			<<"cause">> => <<"CHARGING_NOT_APPLICABLE">>};
+from_problemdetails(403, #{<<"cause">> := <<"END_USER_REQUEST_DENIED">>}) ->
+	#{<<"title">> => <<"Denied">>,
+			<<"detail">> => <<"It was determined that service may not be provided to the subscriber.">>,
+			<<"status">> => 403,
+			<<"cause">> => <<"END_USER_REQUEST_DENIED">>};
+from_problemdetails(403, #{<<"cause">> := <<"END_USER_REQUEST_REJECTED">>}) ->
+	#{<<"title">> => <<"Denied">>,
+			<<"detail">> => <<"The charging service request is rejected for this end user.">>,
+			<<"status">> => 403,
+			<<"cause">> => <<"END_USER_REQUEST_REJECTED">>};
+from_problemdetails(403, #{<<"cause">> := <<"QUOTA_LIMIT_REACHED">>}) ->
+	#{<<"title">> => <<"Out of credit">>,
+			<<"detail">> => <<"The subscriber's account has insufficient balance to cover the request.">>,
+			<<"status">> => 403,
+			<<"cause">> => <<"QUOTA_LIMIT_REACHED">>};
+from_problemdetails(403, _RatingProblem) ->
+	#{<<"title">> => <<"Denied">>,
+			<<"detail">> => <<"It was determined that service may not be provided to the subscriber.">>,
+			<<"status">> => 403,
+			<<"cause">> => <<"END_USER_REQUEST_DENIED">>};
+from_problemdetails(404, _RatingProblem) ->
+	#{<<"title">> => <<"Uknown user">>,
+			<<"detail">> => <<"The end user is not known to the charging service.">>,
+			<<"status">> => 404,
+			<<"cause">> => <<"USER_UNKNOWN">>};
+from_problemdetails(500, #{<<"cause">> := <<"SYSTEM_FAILURE">>}) ->
+	#{<<"title">> => <<"Error">>,
+			<<"detail">> => <<"A system failure occurred while processing the request.">>,
+			<<"status">> => 500,
+			<<"cause">> => <<"SYSTEM_FAILURE">>};
+from_problemdetails(500, _RatingProblem) ->
+	#{<<"title">> => <<"Error">>,
+			<<"detail">> => <<"An unexpected error occurred while processing the request.">>,
+			<<"status">> => 500,
+			<<"cause">> => <<"SYSTEM_FAILURE">>};
+from_problemdetails(Status, _RatingProblem) ->
+	#{<<"title">> => <<"Other">>,
+			<<"status">> => Status,
+			<<"cause">> => <<"CHARGING_FAILED">>}.
 
 %% @hidden
 nrf() ->

@@ -175,11 +175,6 @@ handle_call({reserve, Subscriber, Amount}, _From, State) ->
 			Account = {(Balance + Reserve) - Amount, Amount},
 			NewState = State#{Subscriber => Account},
 			{reply, {ok, Account}, NewState};
-		{ok, {Balance, Reserve}}
-				when (Balance + Reserve) > 0 ->
-			Account = {0, Balance + Reserve},
-			NewState = State#{Subscriber => Account},
-			{reply, {ok, Account}, NewState};
 		{ok, _Account} ->
 			{reply, {error, out_of_credit}, State};
 		error ->

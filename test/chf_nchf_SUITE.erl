@@ -31,6 +31,7 @@
 		create_scur/0, create_scur/1,
 		update_scur/0, update_scur/1,
 		release_scur/0, release_scur/1,
+		out_of_credit/0, out_of_credit/1,
 		bad_request/0, bad_request/1]).
 
 -include_lib("common_test/include/ct.hrl").
@@ -185,7 +186,8 @@ sequences() ->
 %% Returns a list of all test cases in this test suite.
 %%
 all() ->
-	[invalid_path, unknown_dataref, create_scur, update_scur, release_scur, bad_request].
+	[invalid_path, unknown_dataref, create_scur, update_scur,
+			release_scur, out_of_credit, bad_request].
 
 %%---------------------------------------------------------------------
 %%  Test cases
@@ -334,6 +336,31 @@ release_scur(Config) ->
 	{ok, ResponseBody} = gun:await_body(ConnPid, StreamRef3),
 	{ok, #{}} = zj:decode(ResponseBody).
 
+out_of_credit() ->
+	[{userdata, [{doc, "Insufficient account balance."}]}].
+
+out_of_credit(Config) ->
+	IMSI = "001001" ++ chf_ct_lib:rand_dn(9),
+	RG = rand:uniform(99) + 100,
+	PDUSCI = pdusci(),
+	UnitSize = 1000000,
+	Balance = rand:uniform(UnitSize - 1),
+	Rf = proplists:get_value(ct_rf, Config),
+	{ok, {Balance, 0}} = chf_rf_server:add_subscriber(Rf, IMSI, Balance),
+	ConnPid = proplists:get_value(conn_pid, Config),
+	Path = proplists:get_value(nchf_path, Config),
+	ContentType =  {<<"content-type">>, <<"application/json">>},
+	Accept = {<<"accept">>, <<"application/json">>},
+	RequestHeaders = [ContentType, Accept],
+	ChargingDataRequest = create_request(IMSI, RG, PDUSCI),
+	RequestBody = zj:encode(ChargingDataRequest),
+	StreamRef = gun:post(ConnPid, Path, RequestHeaders, RequestBody),
+	{response, nofin, 403, ResponseHeaders} = gun:await(ConnPid, StreamRef),
+	CT = proplists:get_value(<<"content-type">>, ResponseHeaders),
+	<<"application/problem+json">> = CT,
+	{ok, ResponseBody} = gun:await_body(ConnPid, StreamRef),
+	{ok, #{"cause" := "QUOTA_LIMIT_REACHED"}} = zj:decode(ResponseBody).
+
 bad_request() ->
 	[{userdata, [{doc, "Nchf request with missing mandatory attribute."}]}].
 
@@ -352,7 +379,11 @@ bad_request(Config) ->
 			"multipleUnitUsage" => [MultipleUnitUsage]},
 	RequestBody = zj:encode(ChargingDataRequest),
 	StreamRef = gun:post(ConnPid, Path, RequestHeaders, RequestBody),
-	{response, fin, 400, _ResponseHeaders} = gun:await(ConnPid, StreamRef).
+	{response, nofin, 400, ResponseHeaders} = gun:await(ConnPid, StreamRef),
+	CT = proplists:get_value(<<"content-type">>, ResponseHeaders),
+	<<"application/problem+json">> = CT,
+	{ok, ResponseBody} = gun:await_body(ConnPid, StreamRef),
+	{ok, #{"cause" := "CHARGING_FAILED"}} = zj:decode(ResponseBody).
 
 %%---------------------------------------------------------------------
 %%  Internal functions

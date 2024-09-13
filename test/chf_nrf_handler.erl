@@ -180,16 +180,18 @@ from_json(#{bindings := #{'RatingDataRef' := RatingDataRef},
 			{stop, Req2, State}
 	catch
       out_of_credit ->
-			Req2 = cowboy_req:reply(403, #{}, Req1),
+			Headers = #{<<"content-type">> => <<"application/problem+json">>},
+			Body = problem_details(403, "QUOTA_LIMIT_REACHED"),
+			Req2 = cowboy_req:reply(403, Headers, Body, Req1),
 			{stop, Req2, State};
 		not_found ->
 			Headers = #{<<"content-type">> => <<"application/problem+json">>},
-			Body = problem_details(404),
+			Body = problem_details(404, "USER_UNKNOWN"),
 			Req2 = cowboy_req:reply(404, Headers, Body, Req1),
 			{stop, Req2, State};
 		_:_ ->
 			Headers = #{<<"content-type">> => <<"application/problem+json">>},
-			Body = problem_details(400),
+			Body = problem_details(400, "RATING_FAILED"),
 			Req2 = cowboy_req:reply(400, Headers, Body, Req1),
 			{stop, Req2, State}
 	end;
@@ -219,16 +221,18 @@ from_json(Req, #{rf := Rf} = State) ->
 			{{created, [?RATINGDATA, $/, RatingDataRef]}, Req2, State}
 	catch
 		out_of_credit ->
-			Req2 = cowboy_req:reply(403, #{}, Req1),
+			Headers = #{<<"content-type">> => <<"application/problem+json">>},
+			Body = problem_details(403, "QUOTA_LIMIT_REACHED"),
+			Req2 = cowboy_req:reply(403, Headers, Body, Req1),
 			{stop, Req2, State};
 		not_found ->
 			Headers = #{<<"content-type">> => <<"application/problem+json">>},
-			Body = problem_details(404),
+			Body = problem_details(404, "USER_UNKNOWN"),
 			Req2 = cowboy_req:reply(404, Headers, Body, Req1),
 			{stop, Req2, State};
-		_:_ ->
+		_Error:_Reason ->
 			Headers = #{<<"content-type">> => <<"application/problem+json">>},
-			Body = problem_details(400),
+			Body = problem_details(400, "RATING_FAILED"),
 			Req2 = cowboy_req:reply(400, Headers, Body, Req1),
 			{stop, Req2, State}
 	end.
@@ -323,18 +327,27 @@ set_debit([], Acc) ->
 	lists:reverse(Acc).
 
 %% @hidden
-problem_details(400) ->
+problem_details(400, Cause) ->
 	[${, $", <<"type">>, $", $:, $",
 			<<"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1">>,
 			$", $,, $", <<"title">>, $", $:, $", <<"Bad Request">>, $", $,,
 			$", <<"detail">>, $", $:, $", <<"The server cannot or will not"
 			" process the request due to something that is perceived to be"
 			" a client error.">>, $", $,, $", <<"status">>, $", $:, <<"400">>,
-			$}];
-problem_details(404) ->
+			$,, $", <<"cause">>, $", $:, $", Cause, $", $}];
+problem_details(403, Cause) ->
+	[${, $", <<"type">>, $", $:, $",
+			<<"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.3">>,
+			$", $,, $", <<"title">>, $", $:, $", <<"Bad Request">>, $", $,,
+			$", <<"detail">>, $", $:, $", <<"The server cannot or will not"
+			" process the request due to something that is perceived to be"
+			" a client error.">>, $", $,, $", <<"status">>, $", $:, <<"403">>,
+			$,, $", <<"cause">>, $", $:, $", Cause, $", $}];
+problem_details(404, Cause) ->
 	[${, $", <<"type">>, $", $:, $",
 			<<"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4">>,
 			$", $,, $", <<"title">>, $", $:, $", <<"Not Found">>, $", $,,
 			$", <<"detail">>, $", $:, $", <<"No resource exists at the path"
-			" provided.">>, $", $,, $", <<"status">>, $", $:, <<"404">>, $}].
+			" provided.">>, $", $,, $", <<"status">>, $", $:, <<"404">>,
+			$,, $", <<"cause">>, $", $:, $", Cause, $", $}].
 
