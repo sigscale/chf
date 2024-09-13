@@ -1,3 +1,7 @@
+2024-09-13 Vance Shipley <vances@sigscale.org>
+
+	* include problem details with cause in nchf application error response
+
 2024-08-12 Vance Shipley <vances@sigscale.org>
 
 	* correct guard to expect binary encoded string
