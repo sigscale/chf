@@ -1,7 +1,7 @@
 %%% chf_nchf_listener_sup.erl
 %%% vim: ts=3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% @copyright 2024 SigScale Global Inc.
+%%% @copyright 2024 - 2025 SigScale Global Inc.
 %%% @author Vance Shipley <vances@sigscale.org> [http://www.sigscale.org]
 %%% @end
 %%% Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
 %%% 	{@link //chf. chf} application.
 %%%
 -module(chf_nchf_listener_sup).
--copyright('Copyright (c) 2024 SigScale Global Inc.').
+-copyright('Copyright (c) 2024 - 2025 SigScale Global Inc.').
 -author('Vance Shipley <vances@sigscale.org>').
 
 -behaviour(supervisor_bridge).

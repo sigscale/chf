@@ -5,7 +5,7 @@
 ## Boilerplate:  standard boilerplate code
 ##
 AC_INIT([chf], [1.0.7], [issues@sigscale.org])
-AC_COPYRIGHT([Copyright (c) 2024 SigScale Global Inc.])
+AC_COPYRIGHT([Copyright (c) 2024 - 2025 SigScale Global Inc.])
 AC_PREREQ(2.64)
 AC_CONFIG_SRCDIR([src/chf_app.erl])
 AC_CONFIG_HEADERS([config.h])
