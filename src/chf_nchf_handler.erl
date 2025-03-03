@@ -506,7 +506,7 @@ from_ratingdata(RatingData)
 				Facc#{Key => N};
 			(<<"serviceRating">>, Value, Facc)
 					when is_list(Value) ->
-				case from_servicerating(Value, []) of
+				case from_servicerating(Value) of
 					[] ->
 						Facc;
 					MUI ->
@@ -519,7 +519,11 @@ from_ratingdata(RatingData)
 	maps:fold(F, ChargingData, RatingData).
 
 %% @hidden
-from_servicerating([#{<<"grantedUnit">> := GU} = SR| T], Acc) ->
+from_servicerating(ServiceRating) ->
+	from_servicerating(merge_servicerating(ServiceRating), []).
+%% @hidden
+from_servicerating([H | T], Acc) ->
+	GU = maps:get(<<"grantedUnit">>, H, #{}),
 	Fold = fun(<<"ratingGroup">> = Key, N, Facc)
 					when is_integer(N) ->
 				Facc#{Key => N};
@@ -550,12 +554,31 @@ from_servicerating([#{<<"grantedUnit">> := GU} = SR| T], Acc) ->
 			(_Key, _Value, Facc) ->
 				Facc
 	end,
-	MultipleUnitInformation = maps:fold(Fold, #{}, SR),
+	MultipleUnitInformation = maps:fold(Fold, #{}, H),
 	from_servicerating(T, [MultipleUnitInformation | Acc]);
-from_servicerating([_ | T], Acc) ->
-	from_servicerating(T, Acc);
 from_servicerating([], Acc) ->
 	lists:reverse(Acc).
+
+%% @hidden
+merge_servicerating(ServiceRating) ->
+	Keys = #{<<"ratingGroup">> => undefined, <<"uPFID">> => undefined},
+	merge_servicerating(ServiceRating, Keys, #{}).
+%% @hidden
+merge_servicerating([H | T], Keys, Acc) ->
+	Key = maps:intersect(Keys, H),
+	ResultCode = maps:get(<<"resultCode">>, H, undefined),
+	case maps:get(Key, Acc, undefined) of
+		undefined ->
+			merge_servicerating(T, Keys, Acc#{Key => H});
+		SR when ResultCode == <<"SUCCESS">> ->
+			SR1 = maps:merge(H, SR),
+			merge_servicerating(T, Keys, Acc#{Key => SR1});
+		SR ->
+			SR1 = maps:merge(SR, H),
+			merge_servicerating(T, Keys, Acc#{Key => SR1})
+	end;
+merge_servicerating([], _, Acc) ->
+	maps:values(Acc).
 
 %% @hidden
 from_problemdetails(400, #{<<"cause">> := <<"RATING_FAILED">>}) ->
