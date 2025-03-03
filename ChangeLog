@@ -1,3 +1,7 @@
+2025-03-04 Vance Shipley <vances@sigscale.org>
+
+	* merge service rating results before map to multiple unit information
+
 2024-09-13 Vance Shipley <vances@sigscale.org>
 
 	* include problem details with cause in nchf application error response
