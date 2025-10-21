@@ -1,7 +1,7 @@
 {
   "openapi" : "3.0.0",
   "info" : {
-    "version" : "1.1.2",
+    "version" : "1.2.0",
     "title" : "Nrf_Rating",
     "description" : "## RF Rating Service\nThe RF performs both monetary and non-monetary unit determination (rating) for all charging levels (bearer, session and service) before and after service delivery (prepaid and postpaid) and based on dynamic credit limit update. Rating considers cross-product, cross-channel, counter-based, rental-based and recharge-based discounts, benefits and allowances. Rating may be performed based on dimensions of volume, time and events.\n\nRate requests include various rating parameters such as service identifier, subscriber reference, network identification, user location, service usage time, transferred data volume, etc. The rate request may contain multiple service identifiers that reflect the list of active services contained in the context handled by the rating service consumer (CHF/OCF).\n\nThe RF determines the applicable price or tariff model and returns it to the NF consumer (CHF/OCF), according to rate requests, subscriber contractual terms, the rating rules configured by operators and billing related information. Note that in case of multiple service requests received, the RF may apply a special price or tariff which can be different to the price or tariff applied to the related services handled separately. For example a VoLTE call may have the data volume associated with the bearer usage free of charge while rating the time associated with the voice session.\n\nTo support the online rating process, the RF needs counters. The counters may be maintained by the RF or by the ABMF. In the former case counters are optional in rating requests.\n\nSee\\:\n  - [3GPP TS 32.296 Online Charging System (OCS) - Applications and Interfaces](https://www.3gpp.org/ftp/Specs/archive/32_series/32.296)\n  - [3GPP TS 32.290 Services, Operations and Procedures of Charging using Service Based Interface (SBI)](https://webapp.etsi.org/key/key.asp?GSMSpecPart1=32&GSMSpecPart2=290)\n  - [3GPP TS 32.291 5G System, Charging Service; Stage 3](https://webapp.etsi.org/key/key.asp?GSMSpecPart1=32&GSMSpecPart2=291)",
     "license" : {
@@ -293,8 +293,10 @@
               "Location" : {
                 "schema" : {
                   "description" : "RatingDataRef",
-                  "type" : "string"
-                }
+                  "type" : "string",
+                  "format" : "uri"
+                },
+                "required" : true
               }
             },
             "content" : {
@@ -319,7 +321,7 @@
                             "exponent" : -10
                           }
                         },
-                        "consumedUnit" : {
+                        "grantedUnit" : {
                           "serviceSpecificUnit" : 1
                         },
                         "resultCode" : "SUCCESS"
@@ -908,6 +910,9 @@
               "type" : "string"
             } ]
           },
+          "serviceContextId" : {
+            "$ref" : "#/components/schemas/ServiceContextId"
+          },
           "serviceRating" : {
             "description" : "One or more service elements to be rated.",
             "type" : "array",
@@ -917,7 +922,7 @@
             "minItems" : 1
           }
         },
-        "required" : [ "nfConsumerIdentification", "invocationTimeStamp", "invocationSequenceNumber", "serviceRating" ]
+        "required" : [ "nfConsumerIdentification", "invocationTimeStamp", "invocationSequenceNumber", "serviceContextId", "serviceRating" ]
       },
       "RatingDataResponse" : {
         "type" : "object",
@@ -1075,7 +1080,7 @@
             "$ref" : "https://api.swaggerhub.com/domains/SigScale/TS29571_CommonData/1.2.1#/components/schemas/NfInstanceId"
           }
         },
-        "required" : [ "serviceContextId", "requestSubType" ]
+        "required" : [ "requestSubType" ]
       },
       "ServiceRatingResult" : {
         "type" : "object",
@@ -1181,6 +1186,9 @@
           "uPFID" : {
             "$ref" : "https://api.swaggerhub.com/domains/SigScale/TS29571_CommonData/1.2.1#/components/schemas/NfInstanceId"
           },
+          "finalUnitIndication" : {
+            "$ref" : "#/components/schemas/FinalUnitIndication"
+          },
           "resultCode" : {
             "anyOf" : [ {
               "type" : "string",
@@ -1230,7 +1238,7 @@
       },
       "ServiceInformation" : {
         "description" : "This parameter holds the individual service specific parameters as defined in the corresponding \"middle tier\" 3GPP TS.",
-        "oneOf" : [ {
+        "anyOf" : [ {
           "description" : "PS Domain Charging Information",
           "allOf" : [ {
             "$ref" : "#/components/schemas/PsChargingInformation"
@@ -1331,7 +1339,7 @@
             "description" : "Indicates the type of the message which caused the charging interaction.",
             "anyOf" : [ {
               "type" : "string",
-              "enum" : [ "SUBMISSION", "DELIVERY_REPORT", "SM Service Request", "T4 Device Trigger", "SM Device Trigger", "MO-SMS T4 submission" ]
+              "enum" : [ "SUBMISSION", "DELIVERY", "DELIVERY_REPORT", "SM Service Request", "T4 Device Trigger", "SM Device Trigger", "MO-SMS T4 submission" ]
             } ]
           },
           "serviceType" : {
@@ -1539,6 +1547,11 @@
             "type" : "string",
             "pattern" : "^[0-9]{5,15}$"
           },
+          "gmscAddress" : {
+            "description" : "The international E.164 number of the gateway Mobile Switching Center (GMSC).",
+            "type" : "string",
+            "pattern" : "^[0-9]{5,15}$"
+          },
           "locationNumber" : {
             "description" : "The E.164 location number for the served user transported in ISUP.",
             "type" : "string",
@@ -1548,6 +1561,9 @@
             "description" : "The international E.164 number of the serving Visitor Location Register (VLR).",
             "type" : "string",
             "pattern" : "^[0-9]{5,15}$"
+          },
+          "userLocationinfo" : {
+            "$ref" : "#/components/schemas/UserLocation"
           }
         }
       },
@@ -2143,6 +2159,60 @@
             "pattern" : "^[A-Fa-f0-9]{4}$"
           }
         }
+      },
+      "FinalUnitIndication" : {
+        "type" : "object",
+        "properties" : {
+          "finalUnitAction" : {
+            "anyOf" : [ {
+              "type" : "string",
+              "enum" : [ "TERMINATE", "REDIRECT", "RESTRICT_ACCESS" ]
+            }, {
+              "type" : "string"
+            } ]
+          },
+          "restrictionFilterRules" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IPFilterRule"
+            },
+            "minItems" : 1
+          },
+          "filterIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "minItems" : 1
+          },
+          "redirectServer" : {
+            "$ref" : "#/components/schemas/RedirectServer"
+          }
+        },
+        "required" : [ "finalUnitAction" ]
+      },
+      "RedirectServer" : {
+        "type" : "object",
+        "properties" : {
+          "redirectAddressType" : {
+            "$ref" : "#/components/schemas/RedirectAddressType"
+          },
+          "redirectServerAddress" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "redirectAddressType", "redirectServerAddress" ]
+      },
+      "RedirectAddressType" : {
+        "anyOf" : [ {
+          "type" : "string",
+          "enum" : [ "IPV4", "IPV6", "URL", "URI" ]
+        }, {
+          "type" : "string"
+        } ]
+      },
+      "IPFilterRule" : {
+        "type" : "string"
       }
     }
   }
