@@ -421,7 +421,8 @@ to_ratingdata1(ServiceSpecId, ChargingData) ->
 	end,
    CHF = #{<<"nodeFunctionality">> => <<"CHF">>},
 	RatingData = #{<<"invocationTimeStamp">> => list_to_binary(chf_rest:now()),
-			<<"nfConsumerIdentification">> => CHF},
+			<<"nfConsumerIdentification">> => CHF,
+			<<"serviceContextId">> => ServiceSpecId},
 	maps:fold(F, RatingData, ChargingData).
 
 %% @hidden
