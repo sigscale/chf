@@ -27,8 +27,8 @@
 %%% 	transcodes `RatingDataResponse' to `ChargingDataResponse' and sends
 %%% 	an `Nchf_ConvergedCharging' response.
 %%%
-%%% 	The `Nrf_Rating' request MUST include `serviceContextId' in each
-%%% 	`ServiceRating' object, the value of which MAY be found in the
+%%% 	The `Nrf_Rating' request MUST include `serviceContextId' in the
+%%% 	`RatingDataRequest' object, the value of which MAY be found in the
 %%% 	`serviceSpecificationInformation' attribute of `ChargingDataRequest',
 %%% 	however if it is not present a default value is chosen based on the
 %%% 	value of `nfConsumerIdentification.nodeFunctionality' as described
@@ -442,10 +442,9 @@ to_servicerating(ServiceSpecId, ChargingData,
 			ChargingData) of
 		{ok, PDUSessionChargingInformation}
 				when is_map(PDUSessionChargingInformation) ->
-			#{<<"serviceContextId">> => ServiceSpecId,
-					<<"serviceInformation">> => PDUSessionChargingInformation};
+			#{<<"serviceInformation">> => PDUSessionChargingInformation};
 		error ->
-			#{<<"serviceContextId">> => ServiceSpecId}
+			#{}
 	end,
 	ServiceRating2 = maps:fold(F, ServiceRating1, MultipleUnitUsage),
 	Acc1 = case maps:find(<<"requestedUnit">>, MultipleUnitUsage) of
