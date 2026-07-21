@@ -7,3 +7,5 @@ network. The Re interface to a remote Rating Function (RF) (e.g.
 [NRF_Rating](https://app.swaggerhub.com/apis/SigScale/nrf-rating/1.2.0)
 API.
  
+![interfaces](https://raw.githubusercontent.com/sigscale/chf/refs/heads/main/doc/interfaces.svg)
+
